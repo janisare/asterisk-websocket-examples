@@ -15,6 +15,7 @@ from websockets.asyncio.server import serve
 from websockets.asyncio.server import basic_auth
 from websockets.asyncio.client import connect
 
+
 class AstMediaWebSocket:
     def __init__(self, tag=None, log_level=None):
         """
@@ -66,7 +67,7 @@ class AstMediaWebSocket:
         await asyncio.sleep(timeout)
         self.sending_file = True
         asyncio.create_task(self.send_file(ws_media, filename, lock))
-        
+
     async def process_media(self, ws_media):
         """
         Processes media messages received on the websocket.
@@ -87,8 +88,9 @@ class AstMediaWebSocket:
                             elif v[0] == "optimal_frame_size":
                                 self.optimal_frame_size = int(v[1])
                         self.sending_file = True
-                        asyncio.create_task(self.send_file(ws_media,
-                            "echo-announce.ulaw", lock))
+                        asyncio.create_task(
+                            self.send_file(ws_media, "echo-announce.ulaw", lock)
+                        )
                     if "MEDIA_XOFF" in message:
                         await lock.acquire()
                     if "MEDIA_XON" in message:
@@ -100,8 +102,9 @@ class AstMediaWebSocket:
                             await ws_media.send("HANGUP")
                             break
                         else:
-                            asyncio.create_task(self.echo_timer(ws_media, 
-                                "zombies.ulaw", 10, lock))
+                            asyncio.create_task(
+                                self.echo_timer(ws_media, "zombies.ulaw", 10, lock)
+                            )
                     continue
                 if not self.sending_file:
                     await ws_media.send(message)
@@ -111,6 +114,7 @@ class AstMediaWebSocket:
             raise e
         finally:
             self.log(INFO, f"Media disconnected")
+
 
 class AstMediaWebSocketServer(AstMediaWebSocket):
     def __init__(self, host, port, credentials, protocol, tag=None, log_level=None):
@@ -136,11 +140,15 @@ class AstMediaWebSocketServer(AstMediaWebSocket):
         self.log(INFO, f"Starting media server")
         auth = None
         if self.credentials is not None:
-            auth =  basic_auth(realm="asterisk", credentials=self.credentials)
+            auth = basic_auth(realm="asterisk", credentials=self.credentials)
 
-        async with serve(self.process_media, self.host, self.port,
-                         subprotocols=[self.protocol],
-                         process_request=auth) as server:
+        async with serve(
+            self.process_media,
+            self.host,
+            self.port,
+            subprotocols=[self.protocol],
+            process_request=auth,
+        ) as server:
             self.server = server
             await server.wait_closed()
 
@@ -150,6 +158,7 @@ class AstMediaWebSocketServer(AstMediaWebSocket):
             self.server.close()
             await self.server.wait_closed()
             self.server = None
+
 
 class AstMediaWebSocketClient(AstMediaWebSocket):
     def __init__(self, host, port, connection_id, tag=None, log_level=None):
@@ -171,4 +180,3 @@ class AstMediaWebSocketClient(AstMediaWebSocket):
         self.log(INFO, f"Connecting to Media at {uri}")
         async with connect(uri, subprotocols=["media"]) as ws_media:
             await self.process_media(ws_media)
-

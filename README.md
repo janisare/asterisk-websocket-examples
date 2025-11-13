@@ -51,7 +51,7 @@ The examples in this repo demonstrate all of those Asterisk websocket capabiliti
 
 Start by creating a test instance of Asterisk then copy the example configuration files into /etc/asterisk.  You'll need a phone to call into Asterisk with so you'll have to set that up yourself.
 
-If you don't have the Python "websockets" package installed, install that now using `pip` or your distro package manager as appropriate.  
+If you don't have the Python "websockets" package installed, install that now using `pip` or your distro package manager as appropriate.
 
 ### mow_echo_test_server.py
 
@@ -75,7 +75,7 @@ To run the test, start Asterisk first, then ast_ws_client_example.py.  When both
 
 ### ast_ws_server_example.py
 
-Usage: 
+Usage:
 
 ```
 ./ast_ws_server_example.py [-h] [-aa ARI_BIND_ADDRESS] -ap ARI_BIND_PORT [-awp ARI_WEBSOCKET_PROTOCOL] [-aU ARI_USER]
@@ -87,7 +87,3 @@ Usage:
 The only two required parameters are ARI_BIND_PORT which should be set to 8765 and MEDIA_BIND_PORT which should be set to 8787 to match the example websocket_client.conf file.  The conf file does specify user and password for both ARI anbd Media so you can include them on the command line to have the servers verify them if desired.  Everything else can be left at the defaults.
 
 To run the test, start Asterisk and ast_ws_server_example.py.  When both are running, dial "1117" from a phone.
-
-
-
-

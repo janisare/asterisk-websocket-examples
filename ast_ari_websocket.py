@@ -16,6 +16,7 @@ from websockets.asyncio.client import connect
 from websockets.asyncio.server import serve
 from websockets.asyncio.server import basic_auth
 
+
 class AstAriWebSocket:
     def __init__(self, tag=None, log_level=None):
         """
@@ -43,7 +44,9 @@ class AstAriWebSocket:
         tag = "" if self.tag is None else f"{self.tag}: "
         self.logger.log(level, f"{tag}{message}")
 
-    async def send_request(self, method, uri, wait_for_response=True, callback=None, **kwargs):
+    async def send_request(
+        self, method, uri, wait_for_response=True, callback=None, **kwargs
+    ):
         """
         Sends a REST request over the WebSocket connection.
         :param method: The HTTP method (GET, POST, etc.) to use for the request.
@@ -53,47 +56,50 @@ class AstAriWebSocket:
         :param kwargs: Additional parameters to include in the request.
         :return: The response from the server, or the result of the callback function.
         """
-        uuidstr = kwargs.pop('request_id', str(uuid.uuid4()))
+        uuidstr = kwargs.pop("request_id", str(uuid.uuid4()))
         req = {
-            'type': 'RESTRequest',
-            'request_id': uuidstr,
-            'method': method,
-            'uri': uri
+            "type": "RESTRequest",
+            "request_id": uuidstr,
+            "method": method,
+            "uri": uri,
         }
-    
-        for k,v in kwargs.items():
+
+        for k, v in kwargs.items():
             req[k] = v
-    
+
         msg = json.dumps(req)
-        rtnobj = { 'result': ''}
+        rtnobj = {"result": ""}
         if wait_for_response:
-            rtnobj['event'] = asyncio.Event()
-    
+            rtnobj["event"] = asyncio.Event()
+
         self.requests[uuidstr] = rtnobj
         self.log(INFO, f"RESTRequest: {method} {uri} {uuidstr}")
-        await self.websocket.send(msg.encode('utf-8'), text=True)
+        await self.websocket.send(msg.encode("utf-8"), text=True)
         if wait_for_response:
-            await rtnobj['event'].wait()
+            await rtnobj["event"].wait()
         del self.requests[uuidstr]
-        resp = rtnobj['result']
-        self.log(INFO, f"RESTResponse: {method} {uri} {resp['status_code']} {resp['reason_phrase']}")
+        resp = rtnobj["result"]
+        self.log(
+            INFO,
+            f"RESTResponse: {method} {uri} {resp['status_code']} {resp['reason_phrase']}",
+        )
         if callback is not None:
-            return callback(self.websocket, uuidstr, req, rtnobj['result'])
-        return rtnobj['result']
-    
+            return callback(self.websocket, uuidstr, req, rtnobj["result"])
+        return rtnobj["result"]
+
     async def process_rest_response(self, msg):
         """
         Processes a REST response message received over the WebSocket.
         :param msg: The REST response message.
         """
-        if msg['type'] == "RESTResponse":
-            reqid = msg['request_id']
+        if msg["type"] == "RESTResponse":
+            reqid = msg["request_id"]
             req = self.requests.get(reqid)
             if req is None:
                 self.log(ERROR, f"Pending request {reqid} not found.")
                 return
-            req['result'] = msg
-            event = req.get('event', None)
+            req["result"] = msg
+            event = req.get("event", None)
             if event is not None:
                 event.set()
 
@@ -115,17 +121,21 @@ class AstAriWebSocket:
         :param rest_handler: The REST handler to use for processing the event.
         :param msg: The ARI event message.
         """
-        if msg['type'] == "ChannelVarset":
+        if msg["type"] == "ChannelVarset":
             return
-        et = msg['type']
-        ts = msg['timestamp']
-        del msg['timestamp']
-        del msg['type']
-        msg['timestamp'] = ts
+        et = msg["type"]
+        ts = msg["timestamp"]
+        del msg["timestamp"]
+        del msg["type"]
+        msg["timestamp"] = ts
         name = ""
-        if 'bridge' in msg:
-            name = msg['bridge']['name'] if len(msg['bridge']['name']) > 0 else msg['bridge']['id']
-        if 'channel' in msg:
+        if "bridge" in msg:
+            name = (
+                msg["bridge"]["name"]
+                if len(msg["bridge"]["name"]) > 0
+                else msg["bridge"]["id"]
+            )
+        if "channel" in msg:
             name += f" {msg['channel']['name']}"
 
         self.log(INFO, f"Received {et} {name}")
@@ -135,7 +145,7 @@ class AstAriWebSocket:
         Processes an incoming ARI event message and call a handler if it exists.
         :param msg: The ARI event message to process.
         """
-        if msg['type'] == "RESTResponse":
+        if msg["type"] == "RESTResponse":
             await self.process_rest_response(msg)
             return
         handler_name = f"handle_{msg['type'].lower()}"
@@ -156,9 +166,11 @@ class AstAriWebSocket:
             asyncio.create_task(self.process_message(msg))
         self.log(INFO, f"ARI disconnected")
 
+
 class AstAriWebSocketServer(AstAriWebSocket):
-    def __init__(self, host, port, credentials, protocol="ari",
-                 tag=None, log_level=None):
+    def __init__(
+        self, host, port, credentials, protocol="ari", tag=None, log_level=None
+    ):
         """
         Initializes the media websocket server.
         :param host: The host address to bind the server to.
@@ -184,11 +196,15 @@ class AstAriWebSocketServer(AstAriWebSocket):
         self.log(INFO, f"Starting ARI server")
         auth = None
         if self.credentials is not None:
-            auth =  basic_auth(realm="asterisk", credentials=self.credentials)
+            auth = basic_auth(realm="asterisk", credentials=self.credentials)
 
-        async with serve(self.handle_connection, self.host, self.port,
-                         subprotocols=[self.protocol],
-                         process_request=auth) as server:
+        async with serve(
+            self.handle_connection,
+            self.host,
+            self.port,
+            subprotocols=[self.protocol],
+            process_request=auth,
+        ) as server:
             self.server = server
             await server.wait_closed()
 
@@ -198,6 +214,7 @@ class AstAriWebSocketServer(AstAriWebSocket):
             self.server.close()
             await self.server.wait_closed()
             self.server = None
+
 
 class AstAriWebSocketClient(AstAriWebSocket):
     def __init__(self, host, port, app, credentials, tag=None, log_level=None):
@@ -221,5 +238,3 @@ class AstAriWebSocketClient(AstAriWebSocket):
         self.log(INFO, f"Connecting to ARI at {uri}")
         async with connect(uri) as websocket:
             await self.handle_connection(websocket)
-
-
