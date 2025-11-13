@@ -164,7 +164,7 @@ class AstAriWebSocket:
         async for message in websocket:
             msg = json.loads(message)
             asyncio.create_task(self.process_message(msg))
-        self.log(INFO, f"ARI disconnected")
+        self.log(INFO, "ARI disconnected")
 
 
 class AstAriWebSocketServer(AstAriWebSocket):
@@ -193,7 +193,7 @@ class AstAriWebSocketServer(AstAriWebSocket):
         Starts the ARI WebSocket server and listens for incoming connections.
         This method is used for server connections from Asterisk.
         """
-        self.log(INFO, f"Starting ARI server")
+        self.log(INFO, "Starting ARI server")
         auth = None
         if self.credentials is not None:
             auth = basic_auth(realm="asterisk", credentials=self.credentials)

@@ -106,9 +106,7 @@ class ast_ws_client(AstAriWebSocketClient):
             sess = self.sessions_by_websocket.get(msg["peer"]["id"])
             sess.bridge_id = str(uuid.uuid4())
             logger.info(f"Creating bridge {sess.bridge_id}")
-            resp = await self.send_request(
-                "POST", f"bridges/{sess.bridge_id}?type=mixing"
-            )
+            await self.send_request("POST", f"bridges/{sess.bridge_id}?type=mixing")
             await self.send_request(
                 "POST",
                 f"bridges/{sess.bridge_id}/addChannel?channel={sess.incoming_channel}",
@@ -118,9 +116,7 @@ class ast_ws_client(AstAriWebSocketClient):
             )
 
             logger.info(f"Answering {sess.incoming_channel_name}")
-            resp = await self.send_request(
-                "POST", f"channels/{sess.incoming_channel}/answer"
-            )
+            await self.send_request("POST", f"channels/{sess.incoming_channel}/answer")
 
     async def handle_stasisend(self, msg):
         sess = None

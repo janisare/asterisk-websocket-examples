@@ -81,7 +81,7 @@ class ast_ws_server(AstAriWebSocketServer):
 
             sess.ws_channel = str(uuid.uuid4())
             self.sessions_by_websocket[sess.ws_channel] = sess
-            resp = await self.send_request(
+            await self.send_request(
                 "POST",
                 "channels/externalMedia",
                 query_strings=[
@@ -109,9 +109,7 @@ class ast_ws_server(AstAriWebSocketServer):
             sess = self.sessions_by_websocket.get(msg["peer"]["id"])
             sess.bridge_id = str(uuid.uuid4())
             logger.info(f"Creating bridge {sess.bridge_id}")
-            resp = await self.send_request(
-                "POST", f"bridges/{sess.bridge_id}?type=mixing"
-            )
+            await self.send_request("POST", f"bridges/{sess.bridge_id}?type=mixing")
             await self.send_request(
                 "POST",
                 f"bridges/{sess.bridge_id}/addChannel?channel={sess.incoming_channel}",
@@ -121,9 +119,7 @@ class ast_ws_server(AstAriWebSocketServer):
             )
 
             logger.info(f"Answering {sess.incoming_channel_name}")
-            resp = await self.send_request(
-                "POST", f"channels/{sess.incoming_channel}/answer"
-            )
+            await self.send_request("POST", f"channels/{sess.incoming_channel}/answer")
 
     async def handle_stasisend(self, msg):
         sess = None
@@ -174,7 +170,7 @@ async def main(args):
     )
     try:
         await event_handler.listen()
-    except Exception as e:
+    except Exception:
         traceback.print_exc()
         return
 

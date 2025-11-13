@@ -113,7 +113,7 @@ class AstMediaWebSocket:
             traceback.print_exc()
             raise e
         finally:
-            self.log(INFO, f"Media disconnected")
+            self.log(INFO, "Media disconnected")
 
 
 class AstMediaWebSocketServer(AstMediaWebSocket):
@@ -137,7 +137,7 @@ class AstMediaWebSocketServer(AstMediaWebSocket):
         """
         Starts the media websocket server and listens for incoming connections.
         """
-        self.log(INFO, f"Starting media server")
+        self.log(INFO, "Starting media server")
         auth = None
         if self.credentials is not None:
             auth = basic_auth(realm="asterisk", credentials=self.credentials)

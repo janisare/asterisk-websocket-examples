@@ -99,7 +99,7 @@ async def check_data(ws_media, sent_buffer, recvd_buffer, optimal_frame_size, ti
 
 
 async def process_media(ws_media):
-    logger.info(f"Media connected")
+    logger.info("Media connected")
     chan_name = ""
     try:
         sent_buffer = io.BytesIO()
@@ -148,7 +148,7 @@ async def main():
             loop = asyncio.get_running_loop()
             loop.add_signal_handler(signal.SIGTERM, server.close)
             await server.wait_closed()
-    except:
+    except Exception:
         pass
 
 

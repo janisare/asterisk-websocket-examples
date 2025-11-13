@@ -161,7 +161,7 @@ class AstAriWebSocket:
         async for message in websocket:
             msg = json.loads(message)
             asyncio.create_task(self.process_message(msg))
-        self.log(INFO, f"ARI disconnected")
+        self.log(INFO, "ARI disconnected")
 
 
 class AstAriWebSocketClient(AstAriWebSocket):
