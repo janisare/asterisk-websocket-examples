@@ -8,11 +8,8 @@ class Applications(BaseAPI):
     async def list(self) -> list[dict]:
         """List all applications."""
 
-        result = await self.send_request(
-            method="GET",
-            uri="applications"
-        )
-        return self.parse_body(result.get('message_body'))
+        result = await self.send_request(method="GET", uri="applications")
+        return self.parse_body(result.get("message_body"))
 
     async def get(self, name: str) -> dict:
         """Retrieve the current state of a mailbox.
@@ -20,11 +17,8 @@ class Applications(BaseAPI):
         :param name: string - (required) The name of the mailbox
         """
 
-        result = await self.send_request(
-            method="GET",
-            uri=f"applications/{name}"
-        )
-        return self.parse_body(result.get('message_body'))
+        result = await self.send_request(method="GET", uri=f"applications/{name}")
+        return self.parse_body(result.get("message_body"))
 
     async def subscribe(self, name: str, source: str) -> None:
         """Subscribe an application to a event source. Returns the state of the
@@ -37,8 +31,7 @@ class Applications(BaseAPI):
         """
 
         await self.send_request(
-            method="POST",
-            uri=f"applications/{name}/subscription?eventSource={source}"
+            method="POST", uri=f"applications/{name}/subscription?eventSource={source}"
         )
 
     async def unsubscribe(self, name: str, source: str) -> None:
@@ -53,7 +46,7 @@ class Applications(BaseAPI):
 
         await self.send_request(
             method="DELETE",
-            uri=f"applications/{name}/subscription?eventSource={source}"
+            uri=f"applications/{name}/subscription?eventSource={source}",
         )
 
     async def filter(self, name: str, filter_obj: dict | None = None) -> None:
@@ -100,7 +93,5 @@ class Applications(BaseAPI):
             filter_obj = {"allowed": [], "disallowed": []}
 
         await self.send_request(
-            method="PUT",
-            uri=f"applications/{name}/eventFilter",
-            **filter_obj
+            method="PUT", uri=f"applications/{name}/eventFilter", **filter_obj
         )

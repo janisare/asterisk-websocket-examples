@@ -22,7 +22,7 @@ class Sounds(BaseAPI):
                 uri += f"?format={format}"
 
         result = await self.send_request(method="GET", uri=uri)
-        return self.parse_body(result.get('message_body'))
+        return self.parse_body(result.get("message_body"))
 
     async def get(self, sound_id: str) -> dict:
         """Get a Sound.
@@ -30,8 +30,5 @@ class Sounds(BaseAPI):
         :param sound_id: string - (required) Sound Id.
         """
 
-        result = await self.send_request(
-            method="GET",
-            uri=f"sounds/{sound_id}"
-        )
-        return self.parse_body(result.get('message_body'))
+        result = await self.send_request(method="GET", uri=f"sounds/{sound_id}")
+        return self.parse_body(result.get("message_body"))

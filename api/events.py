@@ -16,17 +16,16 @@ class Events(BaseAPI):
         """
 
         result = await self.send_request(
-            method="GET",
-            uri=f"events?app={app}&subscribeAll={subscribe_all}"
+            method="GET", uri=f"events?app={app}&subscribeAll={subscribe_all}"
         )
-        return self.parse_body(result.get('message_body'))
+        return self.parse_body(result.get("message_body"))
 
     async def create(
-            self,
-            name: str,
-            app: str,
-            source: str | None = None,
-            variables: dict | None = None
+        self,
+        name: str,
+        app: str,
+        source: str | None = None,
+        variables: dict | None = None,
     ) -> dict:
         """Generate a user event.
 
@@ -49,9 +48,5 @@ class Events(BaseAPI):
         if not variables:
             variables = {}
 
-        result = await self.send_request(
-            method="POST",
-            uri=uri,
-            **variables
-        )
-        return self.parse_body(result.get('message_body'))
+        result = await self.send_request(method="POST", uri=uri, **variables)
+        return self.parse_body(result.get("message_body"))

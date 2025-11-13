@@ -8,11 +8,8 @@ class DeviceStates(BaseAPI):
     async def list(self) -> list[dict]:
         """List all ARI controlled device states."""
 
-        result = await self.send_request(
-            method="GET",
-            uri="deviceStates"
-        )
-        return self.parse_body(result.get('message_body'))
+        result = await self.send_request(method="GET", uri="deviceStates")
+        return self.parse_body(result.get("message_body"))
 
     async def get(self, name: str) -> dict:
         """Retrieve the current state of a device.
@@ -20,11 +17,8 @@ class DeviceStates(BaseAPI):
         :param name: string - (required) Name of the device
         """
 
-        result = await self.send_request(
-            method="GET",
-            uri=f"deviceStates/{name}"
-        )
-        return self.parse_body(result.get('message_body'))
+        result = await self.send_request(method="GET", uri=f"deviceStates/{name}")
+        return self.parse_body(result.get("message_body"))
 
     async def update(self, name: str, state: str) -> None:
         """Change the state of a device controlled by ARI. (Note - implicitly creates
@@ -37,8 +31,7 @@ class DeviceStates(BaseAPI):
         """
 
         await self.send_request(
-            method="PUT",
-            uri=f"deviceStates/{name}?deviceState={state}"
+            method="PUT", uri=f"deviceStates/{name}?deviceState={state}"
         )
 
     async def delete(self, name: str) -> None:
@@ -47,7 +40,4 @@ class DeviceStates(BaseAPI):
         :param name: string - (required) Name of the device
         """
 
-        await self.send_request(
-            method="DELETE",
-            uri=f"deviceStates/{name}"
-        )
+        await self.send_request(method="DELETE", uri=f"deviceStates/{name}")

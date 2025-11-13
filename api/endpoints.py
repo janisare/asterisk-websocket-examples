@@ -8,11 +8,8 @@ class Endpoints(BaseAPI):
     async def list(self) -> list[dict]:
         """List all endpoints."""
 
-        result = await self.send_request(
-            method="GET",
-            uri="endpoints"
-        )
-        return self.parse_body(result.get('message_body'))
+        result = await self.send_request(method="GET", uri="endpoints")
+        return self.parse_body(result.get("message_body"))
 
     async def list_by_tech(self, tech: str) -> list[dict]:
         """List available endpoints for a given endpoint technology.
@@ -20,11 +17,8 @@ class Endpoints(BaseAPI):
         :param tech: string - Technology of the endpoints (pjsip,iax2,...)
         """
 
-        result = await self.send_request(
-            method="GET",
-            uri=f"endpoints/{tech}"
-        )
-        return self.parse_body(result.get('message_body'))
+        result = await self.send_request(method="GET", uri=f"endpoints/{tech}")
+        return self.parse_body(result.get("message_body"))
 
     async def get(self, tech: str, resource: str) -> dict:
         """Details for an endpoint.
@@ -34,13 +28,12 @@ class Endpoints(BaseAPI):
         """
 
         result = await self.send_request(
-            method="GET",
-            uri=f"endpoints/{tech}/{resource}"
+            method="GET", uri=f"endpoints/{tech}/{resource}"
         )
-        return self.parse_body(result.get('message_body'))
+        return self.parse_body(result.get("message_body"))
 
     async def send(
-            self, to: str, sender: str, body: str, variables: dict | None = None
+        self, to: str, sender: str, body: str, variables: dict | None = None
     ) -> None:
         """Send a message to some technology URI or endpoint.
 
@@ -57,19 +50,15 @@ class Endpoints(BaseAPI):
         if not variables:
             variables = {}
 
-        await self.send_request(
-            method="PUT",
-            uri=uri,
-            **variables
-        )
+        await self.send_request(method="PUT", uri=uri, **variables)
 
     async def send_to_endpoint(
-            self,
-            tech: str,
-            resource: str,
-            sender: str,
-            body: str,
-            variables: dict | None = None
+        self,
+        tech: str,
+        resource: str,
+        sender: str,
+        body: str,
+        variables: dict | None = None,
     ) -> None:
         """Send a message to some technology URI or endpoint.
 
@@ -87,15 +76,15 @@ class Endpoints(BaseAPI):
         if not variables:
             variables = {}
 
-        await self.send_request(
-            method="PUT",
-            uri=uri,
-            **variables
-        )
+        await self.send_request(method="PUT", uri=uri, **variables)
 
     async def refer(
-            self, to: str, sender: str, refer_to: str, to_self: bool = False,
-            variables: dict | None = None
+        self,
+        to: str,
+        sender: str,
+        refer_to: str,
+        to_self: bool = False,
+        variables: dict | None = None,
     ):
         """Refer an endpoint or technology URI to some technology URI or endpoint.
 
@@ -114,21 +103,17 @@ class Endpoints(BaseAPI):
 
         uri = f"endpoints/refer?to={to}&from={sender}&refer_to={refer_to}&to_self={to_self}"
 
-        result = await self.send_request(
-            method="POST",
-            uri=uri,
-            **variables
-        )
-        return self.parse_body(result.get('message_body'))
+        result = await self.send_request(method="POST", uri=uri, **variables)
+        return self.parse_body(result.get("message_body"))
 
     async def refer_to_endpoint(
-            self,
-            tech: str,
-            resource: str,
-            sender: str,
-            refer_to: str,
-            to_self: bool = False,
-            variables: dict | None = None
+        self,
+        tech: str,
+        resource: str,
+        sender: str,
+        refer_to: str,
+        to_self: bool = False,
+        variables: dict | None = None,
     ):
         """Refer an endpoint or technology URI to some technology URI or endpoint.
 
@@ -147,9 +132,5 @@ class Endpoints(BaseAPI):
 
         uri = f"endpoints/{tech}/{resource}/refer?from={sender}&refer_to={refer_to}&to_self={to_self}"
 
-        result = await self.send_request(
-            method="POST",
-            uri=uri,
-            **variables
-        )
-        return self.parse_body(result.get('message_body'))
+        result = await self.send_request(method="POST", uri=uri, **variables)
+        return self.parse_body(result.get("message_body"))

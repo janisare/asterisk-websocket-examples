@@ -8,17 +8,14 @@ class Bridges(BaseAPI):
     async def list(self) -> list[dict]:
         """List all bridges."""
 
-        result = await self.send_request(
-            method="GET",
-            uri="bridges"
-        )
-        return self.parse_body(result.get('message_body'))
+        result = await self.send_request(method="GET", uri="bridges")
+        return self.parse_body(result.get("message_body"))
 
     async def create(
-            self,
-            bridge_id: str | None = None,
-            name: str | None = None,
-            bridge_type: str = "mixing"
+        self,
+        bridge_id: str | None = None,
+        name: str | None = None,
+        bridge_type: str = "mixing",
     ) -> dict:
         """
         Create a bridge.
@@ -40,7 +37,7 @@ class Bridges(BaseAPI):
             method="POST",
             uri=uri,
         )
-        return self.parse_body(result.get('message_body'))
+        return self.parse_body(result.get("message_body"))
 
     async def get(self, bridge_id: str) -> dict:
         """
@@ -48,11 +45,8 @@ class Bridges(BaseAPI):
 
         :param bridge_id: string - (required) Bridge ID
         """
-        result = await self.send_request(
-            method="GET",
-            uri=f"bridges/{bridge_id}"
-        )
-        return self.parse_body(result.get('message_body'))
+        result = await self.send_request(method="GET", uri=f"bridges/{bridge_id}")
+        return self.parse_body(result.get("message_body"))
 
     async def delete(self, bridge_id: str) -> None:
         """
@@ -63,13 +57,13 @@ class Bridges(BaseAPI):
         await self.send_request(method="DELETE", uri=f"bridges/{bridge_id}")
 
     async def add_channel(
-            self,
-            bridge_id: str,
-            channel: str,
-            role: str | None = None,
-            absorbDTMF: bool = False,
-            mute: bool = False,
-            inhibitConnectedLineUpdates: bool = False
+        self,
+        bridge_id: str,
+        channel: str,
+        role: str | None = None,
+        absorbDTMF: bool = False,
+        mute: bool = False,
+        inhibitConnectedLineUpdates: bool = False,
     ) -> None:
         """
         Add a channel/-s to the bridge.
@@ -105,8 +99,7 @@ class Bridges(BaseAPI):
         :param channel: string - (required) Ids of channels to add to bridge; Allows comma separated values.
         """
         await self.send_request(
-            method="POST",
-            uri=f"bridges/{bridge_id}/removeChannel?channel={channel}"
+            method="POST", uri=f"bridges/{bridge_id}/removeChannel?channel={channel}"
         )
 
     async def start_moh(self, bridge_id: str, mohClass: str) -> None:
@@ -127,14 +120,14 @@ class Bridges(BaseAPI):
         await self.send_request(method="DELETE", uri=f"bridges/{bridge_id}/moh")
 
     async def play(
-            self,
-            bridge_id: str,
-            media: str,
-            announcer_format: str = None,
-            lang: str = None,
-            offsetms: int = None,
-            skipms: int = 3000,
-            playbackId: str = None
+        self,
+        bridge_id: str,
+        media: str,
+        announcer_format: str = None,
+        lang: str = None,
+        offsetms: int = None,
+        skipms: int = 3000,
+        playbackId: str = None,
     ) -> None:
         """
         Start playback of media on a bridge. The media URI may be any of a number
@@ -179,14 +172,14 @@ class Bridges(BaseAPI):
         await self.send_request(method="POST", uri=uri)
 
     async def play_with_id(
-            self,
-            bridge_id: str,
-            playbackId: str,
-            media: str,
-            announcer_format: str = None,
-            lang: str = None,
-            offsetms: int = None,
-            skipms: int = 3000
+        self,
+        bridge_id: str,
+        playbackId: str,
+        media: str,
+        announcer_format: str = None,
+        lang: str = None,
+        offsetms: int = None,
+        skipms: int = 3000,
     ) -> dict:
         """
         Start playback of media on a bridge. The media URI may be any of a number of
@@ -226,20 +219,19 @@ class Bridges(BaseAPI):
             uri += f"&skipms={skipms}"
 
         result = await self.send_request(method="POST", uri=uri)
-        return self.parse_body(result.get('message_body'))
+        return self.parse_body(result.get("message_body"))
 
     async def record(
-            self,
-            bridge_id: str,
-            name: str,
-            format: str,
-            recorder_format: str | None = None,
-            maxDurationSeconds: int = 0,
-            maxSilenceSeconds: int = 0,
-            ifExists: str = "fail",
-            beep: bool = False,
-            terminateOn: str = "none"
-
+        self,
+        bridge_id: str,
+        name: str,
+        format: str,
+        recorder_format: str | None = None,
+        maxDurationSeconds: int = 0,
+        maxSilenceSeconds: int = 0,
+        ifExists: str = "fail",
+        beep: bool = False,
+        terminateOn: str = "none",
     ) -> dict:
         """Start a recording. This records the mixed audio from all channels participating in this bridge.
 
@@ -281,7 +273,7 @@ class Bridges(BaseAPI):
             uri += f"&terminateOn={terminateOn}"
 
         result = await self.send_request(method="POST", uri=uri)
-        return self.parse_body(result.get('message_body'))
+        return self.parse_body(result.get("message_body"))
 
     def set_video_source(self, bridge_id: int) -> NotImplementedError:
         raise NotImplementedError()

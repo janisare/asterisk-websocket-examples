@@ -6,7 +6,7 @@ class Asterisk(BaseAPI):
         super().__init__(send_request)
 
     async def get_object(
-            self, config_class: str, object_type: str, object_id: str
+        self, config_class: str, object_type: str, object_id: str
     ) -> list[dict]:
         """Retrieve a dynamic configuration object.
 
@@ -18,16 +18,16 @@ class Asterisk(BaseAPI):
 
         result = await self.send_request(
             method="GET",
-            uri=f"asterisk/config/dynamic/{config_class}/{object_type}/{object_id}"
+            uri=f"asterisk/config/dynamic/{config_class}/{object_type}/{object_id}",
         )
-        return self.parse_body(result.get('message_body'))
+        return self.parse_body(result.get("message_body"))
 
     async def update_object(
-            self,
-            config_class: str,
-            object_type: str,
-            object_id: str,
-            fields: dict | None = None
+        self,
+        config_class: str,
+        object_type: str,
+        object_id: str,
+        fields: dict | None = None,
     ) -> list[dict]:
         """Create or update a dynamic configuration object.
 
@@ -48,15 +48,12 @@ class Asterisk(BaseAPI):
         result = await self.send_request(
             method="PUT",
             uri=f"asterisk/config/dynamic/{config_class}/{object_type}/{object_id}",
-            **fields
+            **fields,
         )
-        return self.parse_body(result.get('message_body'))
+        return self.parse_body(result.get("message_body"))
 
     async def delete_object(
-        self,
-        config_class: str,
-        object_type: str,
-        object_id: str
+        self, config_class: str, object_type: str, object_id: str
     ) -> None:
         """Create or update a dynamic configuration object.
 
@@ -68,7 +65,7 @@ class Asterisk(BaseAPI):
 
         await self.send_request(
             method="DELETE",
-            uri=f"asterisk/config/dynamic/{config_class}/{object_type}/{object_id}"
+            uri=f"asterisk/config/dynamic/{config_class}/{object_type}/{object_id}",
         )
 
     async def get_info(self, only: str) -> dict:
@@ -84,29 +81,20 @@ class Asterisk(BaseAPI):
         if only:
             uri += f"?only={only}"
 
-        result = await self.send_request(
-            method="GET",
-            uri=uri
-        )
-        return self.parse_body(result.get('message_body'))
+        result = await self.send_request(method="GET", uri=uri)
+        return self.parse_body(result.get("message_body"))
 
     async def ping(self) -> dict:
         """Ping Asterisk server."""
 
-        result = await self.send_request(
-            method="GET",
-            uri="asterisk/ping"
-        )
-        return self.parse_body(result.get('message_body'))
+        result = await self.send_request(method="GET", uri="asterisk/ping")
+        return self.parse_body(result.get("message_body"))
 
     async def list_modules(self) -> list[dict]:
         """List Asterisk modules."""
 
-        result = await self.send_request(
-            method="GET",
-            uri="asterisk/modules"
-        )
-        return self.parse_body(result.get('message_body'))
+        result = await self.send_request(method="GET", uri="asterisk/modules")
+        return self.parse_body(result.get("message_body"))
 
     async def get_module(self, name: str) -> dict:
         """Get Asterisk module information.
@@ -114,11 +102,8 @@ class Asterisk(BaseAPI):
         :param name: string - (required) Module name.
         """
 
-        result = await self.send_request(
-            method="GET",
-            uri=f"asterisk/modules/{name}"
-        )
-        return self.parse_body(result.get('message_body'))
+        result = await self.send_request(method="GET", uri=f"asterisk/modules/{name}")
+        return self.parse_body(result.get("message_body"))
 
     async def load_module(self, name: str) -> None:
         """Load an Asterisk module.
@@ -126,10 +111,7 @@ class Asterisk(BaseAPI):
         :param name: string - (required) Module name.
         """
 
-        await self.send_request(
-            method="POST",
-            uri=f"asterisk/modules/{name}"
-        )
+        await self.send_request(method="POST", uri=f"asterisk/modules/{name}")
 
     async def unload_module(self, name: str) -> None:
         """Unload an Asterisk module.
@@ -137,10 +119,7 @@ class Asterisk(BaseAPI):
         :param name: string - (required) Module name.
         """
 
-        await self.send_request(
-            method="DELETE",
-            uri=f"asterisk/modules/{name}"
-        )
+        await self.send_request(method="DELETE", uri=f"asterisk/modules/{name}")
 
     async def reload_module(self, name: str) -> None:
         """Reload an Asterisk module.
@@ -148,19 +127,13 @@ class Asterisk(BaseAPI):
         :param name: string - (required) Module name.
         """
 
-        await self.send_request(
-            method="PUT",
-            uri=f"asterisk/modules/{name}"
-        )
+        await self.send_request(method="PUT", uri=f"asterisk/modules/{name}")
 
     async def list_log_channels(self) -> list[dict]:
         """Gets Asterisk log channel information."""
 
-        result = await self.send_request(
-            method="GET",
-            uri="asterisk/logging"
-        )
-        return self.parse_body(result.get('message_body'))
+        result = await self.send_request(method="GET", uri="asterisk/logging")
+        return self.parse_body(result.get("message_body"))
 
     async def add_log(self, name: str, config: str) -> None:
         """Adds a log channel.
@@ -170,8 +143,7 @@ class Asterisk(BaseAPI):
         """
 
         await self.send_request(
-            method="POST",
-            uri=f"asterisk/logging/{name}?configuration={config}"
+            method="POST", uri=f"asterisk/logging/{name}?configuration={config}"
         )
 
     async def delete_log(self, name: str) -> None:
@@ -180,10 +152,7 @@ class Asterisk(BaseAPI):
         :param name: string - (required) Name of the log channel.
         """
 
-        await self.send_request(
-            method="DELETE",
-            uri=f"asterisk/logging/{name}"
-        )
+        await self.send_request(method="DELETE", uri=f"asterisk/logging/{name}")
 
     async def rotate_log(self, name: str) -> None:
         """Rotates a log channel.
@@ -191,10 +160,7 @@ class Asterisk(BaseAPI):
         :param name: string - (required) Name of the log channel.
         """
 
-        await self.send_request(
-            method="PUT",
-            uri=f"asterisk/logging/{name}/rotate"
-        )
+        await self.send_request(method="PUT", uri=f"asterisk/logging/{name}/rotate")
 
     async def get_variable(self, variable: str) -> str:
         """Get the value of a global variable.
@@ -203,10 +169,9 @@ class Asterisk(BaseAPI):
         """
 
         result = await self.send_request(
-            method="GET",
-            uri=f"asterisk/variable?variable={variable}"
+            method="GET", uri=f"asterisk/variable?variable={variable}"
         )
-        return self.parse_body(result.get('message_body'))
+        return self.parse_body(result.get("message_body"))
 
     async def set_variable(self, variable: str, value: str | None = None) -> None:
         """Get the value of a global variable.
@@ -220,7 +185,4 @@ class Asterisk(BaseAPI):
         if value:
             uri += f"&value={value}"
 
-        await self.send_request(
-            method="POST",
-            uri=uri
-        )
+        await self.send_request(method="POST", uri=uri)

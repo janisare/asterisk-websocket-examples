@@ -11,11 +11,8 @@ class Playbacks(BaseAPI):
         :param playback_id: string - (required) Playback Id.
         """
 
-        result = await self.send_request(
-            method="GET",
-            uri=f"playbacks/{playback_id}"
-        )
-        return self.parse_body(result.get('message_body'))
+        result = await self.send_request(method="GET", uri=f"playbacks/{playback_id}")
+        return self.parse_body(result.get("message_body"))
 
     async def control(self, playback_id: str, operation: str) -> dict:
         """Control a playback.
@@ -26,8 +23,7 @@ class Playbacks(BaseAPI):
         """
 
         await self.send_request(
-            method="POST",
-            uri=f"playbacks/{playback_id}/control?operation={operation}"
+            method="POST", uri=f"playbacks/{playback_id}/control?operation={operation}"
         )
 
     async def stop(self, playback_id: str) -> None:
@@ -36,7 +32,4 @@ class Playbacks(BaseAPI):
         :param playback_id: string - (required) Playback Id.
         """
 
-        await self.send_request(
-            method="DELETE",
-            uri=f"playbacks/{playback_id}"
-        )
+        await self.send_request(method="DELETE", uri=f"playbacks/{playback_id}")
