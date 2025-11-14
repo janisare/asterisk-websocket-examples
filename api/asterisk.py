@@ -1,4 +1,15 @@
-from api.base import BaseAPI
+from typing import Any, TypeAlias
+from .base import BaseAPI
+
+ConfigTuple: TypeAlias = dict[str, Any]
+ConfigTupleList: TypeAlias = list[ConfigTuple]
+AsteriskInfo: TypeAlias = dict[str, Any]
+AsteriskPing: TypeAlias = dict[str, Any]
+Module: TypeAlias = dict[str, Any]
+ModuleList: TypeAlias = list[Module]
+LogChannel: TypeAlias = dict[str, Any]
+LogChannelList: TypeAlias = list[LogChannel]
+Variable: TypeAlias = dict[str, Any]
 
 
 class Asterisk(BaseAPI):
@@ -7,7 +18,7 @@ class Asterisk(BaseAPI):
 
     async def get_object(
         self, config_class: str, object_type: str, object_id: str
-    ) -> list[dict]:
+    ) -> ConfigTupleList:
         """Retrieve a dynamic configuration object.
 
         :param config_class: string - The configuration class containing dynamic
@@ -28,7 +39,7 @@ class Asterisk(BaseAPI):
         object_type: str,
         object_id: str,
         fields: dict | None = None,
-    ) -> list[dict]:
+    ) -> ConfigTupleList:
         """Create or update a dynamic configuration object.
 
         :param config_class: string - The configuration class containing dynamic
@@ -68,7 +79,7 @@ class Asterisk(BaseAPI):
             uri=f"asterisk/config/dynamic/{config_class}/{object_type}/{object_id}",
         )
 
-    async def get_info(self, only: str) -> dict:
+    async def get_info(self, only: str) -> AsteriskInfo:
         """Gets Asterisk system information.
 
         :param only: string - Filter information returned
@@ -76,27 +87,27 @@ class Asterisk(BaseAPI):
         Allows comma separated values.
         """
 
-        uri = "asterisk/info"
-
+        query_params: dict[str, str] = {}
         if only:
-            uri += f"?only={only}"
+            query_params["only"] = only
 
+        uri = self._build_uri("asterisk/info", query_params)
         result = await self.send_request(method="GET", uri=uri)
         return self.parse_body(result.get("message_body"))
 
-    async def ping(self) -> dict:
+    async def ping(self) -> AsteriskPing:
         """Ping Asterisk server."""
 
         result = await self.send_request(method="GET", uri="asterisk/ping")
         return self.parse_body(result.get("message_body"))
 
-    async def list_modules(self) -> list[dict]:
+    async def list_modules(self) -> ModuleList:
         """List Asterisk modules."""
 
         result = await self.send_request(method="GET", uri="asterisk/modules")
         return self.parse_body(result.get("message_body"))
 
-    async def get_module(self, name: str) -> dict:
+    async def get_module(self, name: str) -> Module:
         """Get Asterisk module information.
 
         :param name: string - (required) Module name.
@@ -129,7 +140,7 @@ class Asterisk(BaseAPI):
 
         await self.send_request(method="PUT", uri=f"asterisk/modules/{name}")
 
-    async def list_log_channels(self) -> list[dict]:
+    async def list_log_channels(self) -> LogChannelList:
         """Gets Asterisk log channel information."""
 
         result = await self.send_request(method="GET", uri="asterisk/logging")
@@ -162,7 +173,7 @@ class Asterisk(BaseAPI):
 
         await self.send_request(method="PUT", uri=f"asterisk/logging/{name}/rotate")
 
-    async def get_variable(self, variable: str) -> str:
+    async def get_variable(self, variable: str) -> Variable:
         """Get the value of a global variable.
 
         :param variable: string - (required) The variable to get.
@@ -180,9 +191,9 @@ class Asterisk(BaseAPI):
         :param value: string - The value to set the variable to
         """
 
-        uri = f"asterisk/variable?variable={variable}"
-
+        query_params: dict[str, str] = {"variable": variable}
         if value:
-            uri += f"&value={value}"
+            query_params["value"] = value
 
+        uri = self._build_uri("asterisk/variable", query_params)
         await self.send_request(method="POST", uri=uri)

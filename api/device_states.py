@@ -1,17 +1,21 @@
-from api.base import BaseAPI
+from typing import Any, TypeAlias
+from .base import BaseAPI
+
+DeviceState: TypeAlias = dict[str, Any]
+DeviceStateList: TypeAlias = list[DeviceState]
 
 
 class DeviceStates(BaseAPI):
     def __init__(self, send_request):
         super().__init__(send_request)
 
-    async def list(self) -> list[dict]:
+    async def list(self) -> DeviceStateList:
         """List all ARI controlled device states."""
 
         result = await self.send_request(method="GET", uri="deviceStates")
         return self.parse_body(result.get("message_body"))
 
-    async def get(self, name: str) -> dict:
+    async def get(self, name: str) -> DeviceState:
         """Retrieve the current state of a device.
 
         :param name: string - (required) Name of the device
@@ -30,9 +34,9 @@ class DeviceStates(BaseAPI):
         RINGINUSE, ONHOLD
         """
 
-        await self.send_request(
-            method="PUT", uri=f"deviceStates/{name}?deviceState={state}"
-        )
+        query_params: dict[str, str] = {"deviceState": state}
+        uri = self._build_uri(f"deviceStates/{name}", query_params)
+        await self.send_request(method="PUT", uri=uri)
 
     async def delete(self, name: str) -> None:
         """Destroy a device-state controlled by ARI.

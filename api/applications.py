@@ -1,17 +1,21 @@
-from api.base import BaseAPI
+from typing import Any, TypeAlias
+from .base import BaseAPI
+
+Application: TypeAlias = dict[str, Any]
+ApplicationList: TypeAlias = list[Application]
 
 
 class Applications(BaseAPI):
     def __init__(self, send_request):
         super().__init__(send_request)
 
-    async def list(self) -> list[dict]:
+    async def list(self) -> ApplicationList:
         """List all applications."""
 
         result = await self.send_request(method="GET", uri="applications")
         return self.parse_body(result.get("message_body"))
 
-    async def get(self, name: str) -> dict:
+    async def get(self, name: str) -> Application:
         """Retrieve the current state of a mailbox.
 
         :param name: string - (required) The name of the mailbox
@@ -20,7 +24,7 @@ class Applications(BaseAPI):
         result = await self.send_request(method="GET", uri=f"applications/{name}")
         return self.parse_body(result.get("message_body"))
 
-    async def subscribe(self, name: str, source: str) -> None:
+    async def subscribe(self, name: str, source: str) -> Application:
         """Subscribe an application to a event source. Returns the state of the
         application after the subscriptions have changed
 
@@ -30,11 +34,12 @@ class Applications(BaseAPI):
         Allows comma separated values.
         """
 
-        await self.send_request(
-            method="POST", uri=f"applications/{name}/subscription?eventSource={source}"
-        )
+        query_params: dict[str, str] = {"eventSource": source}
+        uri = self._build_uri(f"applications/{name}/subscription", query_params)
+        result = await self.send_request(method="POST", uri=uri)
+        return self.parse_body(result.get("message_body"))
 
-    async def unsubscribe(self, name: str, source: str) -> None:
+    async def unsubscribe(self, name: str, source: str) -> Application:
         """Unsubscribe an application from an event source. Returns the state of the
         application after the subscriptions have changed
 
@@ -44,12 +49,12 @@ class Applications(BaseAPI):
         Allows comma separated values.
         """
 
-        await self.send_request(
-            method="DELETE",
-            uri=f"applications/{name}/subscription?eventSource={source}",
-        )
+        query_params: dict[str, str] = {"eventSource": source}
+        uri = self._build_uri(f"applications/{name}/subscription", query_params)
+        result = await self.send_request(method="DELETE", uri=uri)
+        return self.parse_body(result.get("message_body"))
 
-    async def filter(self, name: str, filter_obj: dict | None = None) -> None:
+    async def filter(self, name: str, filter_obj: dict | None = None) -> Application:
         """Filter application events types.
 
         Allowed and/or disallowed event type filtering can be done. The body
@@ -90,8 +95,9 @@ class Applications(BaseAPI):
         """
 
         if not filter_obj:
-            filter_obj = {"allowed": [], "disallowed": []}
+            filter_obj = {}
 
-        await self.send_request(
+        result = await self.send_request(
             method="PUT", uri=f"applications/{name}/eventFilter", **filter_obj
         )
+        return self.parse_body(result.get("message_body"))

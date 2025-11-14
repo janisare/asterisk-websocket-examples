@@ -1,11 +1,20 @@
-from api.base import BaseAPI
+from typing import Any, TypeAlias
+from .base import BaseAPI
+
+Channel: TypeAlias = dict[str, Any]
+ChannelList: TypeAlias = list[Channel]
+
+Playback: TypeAlias = dict[str, Any]
+LiveRecording: TypeAlias = dict[str, Any]
+Variable: TypeAlias = dict[str, Any]
+RTPstat: TypeAlias = dict[str, Any]
 
 
 class Channels(BaseAPI):
     def __init__(self, send_request):
         super().__init__(send_request)
 
-    async def list(self) -> list[dict]:
+    async def list(self) -> ChannelList:
         """List all active channels in Asterisk."""
 
         result = await self.send_request(method="GET", uri="channels")
@@ -27,7 +36,7 @@ class Channels(BaseAPI):
         originator: str | None = None,
         formats: str | None = None,
         variables: dict | None = None,
-    ) -> dict:
+    ) -> Channel:
         """
         Create a new channel (originate). The new channel is created immediately and
         a snapshot of it returned. If a Stasis application is provided it will be
@@ -56,8 +65,8 @@ class Channels(BaseAPI):
         no timeout.
         Default: 30
         :param channel_id: string - The unique id to assign the channel on creation.
-        :param other_channel_id: string - The unique id to assign the second channel when
-        using local channels.
+        :param other_channel_id: string - The unique id to assign the second channel
+        when using local channels.
         :param originator: string - The unique id of the channel which is originating
         this one.
         :param formats: string - The format name capability list to use if originator
@@ -69,31 +78,33 @@ class Channels(BaseAPI):
         Ex. { "endpoint": "SIP/Alice", "variables": { "CALLERID(name)": "Alice" } }
         """
 
-        uri = f"channels?endpoint={endpoint}"
+        query_params: dict[str, str] = {"endpoint": endpoint}
         if extension:
-            uri += f"&extension={extension}"
+            query_params["extension"] = extension
         if context:
-            uri += f"&context={context}"
+            query_params["context"] = context
         if priority:
-            uri += f"&priority={priority}"
+            query_params["priority"] = str(priority)
         if label:
-            uri += f"&label={label}"
+            query_params["label"] = label
         if app:
-            uri += f"&app={app}"
+            query_params["app"] = app
         if app_args:
-            uri += f"&appArgs={app_args}"
+            query_params["appArgs"] = app_args
         if callerid:
-            uri += f"&callerId={callerid}"
+            query_params["callerId"] = callerid
         if timeout:
-            uri += f"&timeout={timeout}"
+            query_params["timeout"] = str(timeout)
         if channel_id:
-            uri += f"&channelId={channel_id}"
+            query_params["channelId"] = channel_id
         if other_channel_id:
-            uri += f"&otherChannelId={other_channel_id}"
+            query_params["otherChannelId"] = other_channel_id
         if originator:
-            uri += f"&originator={originator}"
+            query_params["originator"] = originator
         if formats:
-            uri += f"&formats={formats}"
+            query_params["formats"] = formats
+
+        uri = self._build_uri("channels", query_params)
 
         if not variables:
             variables = {}
@@ -117,7 +128,7 @@ class Channels(BaseAPI):
         originator: str | None = None,
         formats: str | None = None,
         variables: dict | None = None,
-    ) -> dict:
+    ) -> Channel:
         """
         Create a new channel (originate with id). The new channel is created immediately
         and a snapshot of it returned. If a Stasis application is provided it will be
@@ -146,8 +157,8 @@ class Channels(BaseAPI):
         :param timeout: int - Timeout (in seconds) before giving up dialing, or -1 for
         no timeout.
         Default: 30
-        :param other_channel_id: string - The unique id to assign the second channel when
-        using local channels.
+        :param other_channel_id: string - The unique id to assign the second channel
+        when using local channels.
         :param originator: string - The unique id of the channel which is originating
         this one.
         :param formats: string - The format name capability list to use if originator
@@ -159,29 +170,31 @@ class Channels(BaseAPI):
         Ex. { "endpoint": "SIP/Alice", "variables": { "CALLERID(name)": "Alice" } }
         """
 
-        uri = f"channels/{channel_id}?endpoint={endpoint}"
+        query_params: dict[str, str] = {"endpoint": endpoint}
         if extension:
-            uri += f"&extension={extension}"
+            query_params["extension"] = extension
         if context:
-            uri += f"&context={context}"
+            query_params["context"] = context
         if priority:
-            uri += f"&priority={priority}"
+            query_params["priority"] = str(priority)
         if label:
-            uri += f"&label={label}"
+            query_params["label"] = label
         if app:
-            uri += f"&app={app}"
+            query_params["app"] = app
         if app_args:
-            uri += f"&appArgs={app_args}"
+            query_params["appArgs"] = app_args
         if callerid:
-            uri += f"&callerId={callerid}"
+            query_params["callerId"] = callerid
         if timeout:
-            uri += f"&timeout={timeout}"
+            query_params["timeout"] = str(timeout)
         if other_channel_id:
-            uri += f"&otherChannelId={other_channel_id}"
+            query_params["otherChannelId"] = other_channel_id
         if originator:
-            uri += f"&originator={originator}"
+            query_params["originator"] = originator
         if formats:
-            uri += f"&formats={formats}"
+            query_params["formats"] = formats
+
+        uri = self._build_uri(f"channels/{channel_id}", query_params)
 
         if not variables:
             variables = {}
@@ -199,7 +212,7 @@ class Channels(BaseAPI):
         originator: str | None = None,
         formats: str | None = None,
         variables: dict | None = None,
-    ) -> dict:
+    ) -> Channel:
         """Create a channel.
 
         :param endpoint: string - (required) Endpoint for channel communication
@@ -208,8 +221,8 @@ class Channels(BaseAPI):
         application provided by 'app'. Mutually exclusive with 'context', 'extension',
         'priority', and 'label'.
         :param channel_id: string - The unique id to assign the channel on creation.
-        :param other_channel_id: string - The unique id to assign the second channel when
-        using local channels.
+        :param other_channel_id: string - The unique id to assign the second channel
+        when using local channels.
         :param originator: string - Unique ID of the calling channel
         :param formats: string - The format name capability list to use if originator
         is not specified. Ex. "ulaw,slin16". Format names can be found with "core show
@@ -220,17 +233,22 @@ class Channels(BaseAPI):
         "variables": { "CALLERID(name)": "Alice" } }
         """
 
-        uri = f"channels/create?endpoint={endpoint}&app={app}"
+        query_params: dict[str, str] = {
+            "endpoint": endpoint,
+            "app": app,
+        }
         if app_args:
-            uri += f"&appArgs={app_args}"
+            query_params["appArgs"] = app_args
         if channel_id:
-            uri += f"&channelId={channel_id}"
+            query_params["channelId"] = channel_id
         if other_channel_id:
-            uri += f"&otherChannelId={other_channel_id}"
+            query_params["otherChannelId"] = other_channel_id
         if originator:
-            uri += f"&originator={originator}"
+            query_params["originator"] = originator
         if formats:
-            uri += f"&formats={formats}"
+            query_params["formats"] = formats
+
+        uri = self._build_uri("channels/create", query_params)
 
         if not variables:
             variables = {}
@@ -238,7 +256,7 @@ class Channels(BaseAPI):
         result = await self.send_request(method="POST", uri=uri, **variables)
         return self.parse_body(result.get("message_body"))
 
-    async def get(self, channel_id: str) -> dict:
+    async def get(self, channel_id: str) -> Channel:
         """Get Channel details.
 
         :param channel_id: string - Channel's id
@@ -268,9 +286,9 @@ class Channels(BaseAPI):
 
         uri = f"channels/{channel_id}"
         if reason_code:
-            uri += f"?reasonCode={reason_code}"
+            uri = self._build_uri(uri, {"reasonCode": reason_code})
         elif reason:
-            uri += f"?reason={reason}"
+            uri = self._build_uri(uri, {"reason": reason})
 
         await self.send_request(method="DELETE", uri=uri)
 
@@ -288,19 +306,21 @@ class Channels(BaseAPI):
         :param context: string - The context to continue to.
         :param extension: string - The extension to continue to.
         :param priority: int - The priority to continue to.
-        :param label: string - The label to continue to - will supersede 'priority' if both are provided.
+        :param label: string - The label to continue to - will supersede 'priority' if
+        both are provided.
         """
 
-        uri = f"/channels/{channel_id}/continue"
+        query_params: dict[str, str] = {}
         if context:
-            uri += f"?context={context}"
+            query_params["context"] = context
         if extension:
-            uri += f"&extension={extension}"
+            query_params["extension"] = extension
         if priority:
-            uri += f"&priority={priority}"
+            query_params["priority"] = str(priority)
         if label:
-            uri += f"&label={label}"
+            query_params["label"] = label
 
+        uri = self._build_uri(f"/channels/{channel_id}/continue", query_params)
         await self.send_request(method="POST", uri=uri)
 
     async def move(
@@ -315,10 +335,11 @@ class Channels(BaseAPI):
         application provided by 'app'.
         """
 
-        uri = f"/channels/{channel_id}/move?app={app}"
+        query_params: dict[str, str] = {"app": app}
         if app_args:
-            uri += f"&appArgs={app_args}"
+            query_params["appArgs"] = app_args
 
+        uri = self._build_uri(f"/channels/{channel_id}/move", query_params)
         await self.send_request(method="POST", uri=uri)
 
     async def redirect(
@@ -332,9 +353,10 @@ class Channels(BaseAPI):
         :param endpoint: string - (required) The endpoint to redirect the channel to
         """
 
-        await self.send_request(
-            method="POST", uri=f"/channels/{channel_id}/redirect?endpoint={endpoint}"
+        uri = self._build_uri(
+            f"/channels/{channel_id}/redirect", {"endpoint": endpoint}
         )
+        await self.send_request(method="POST", uri=uri)
 
     async def answer(
         self,
@@ -402,18 +424,19 @@ class Channels(BaseAPI):
         :param after: int - Amount of time to wait after DTMF digits (specified in
         milliseconds) end.
         """
-        uri = f"/channels/{channel_id}/dtmf"
+        query_params: dict[str, str] = {}
         if dtmf:
-            uri += f"?dtmf={dtmf}"
+            query_params["dtmf"] = dtmf
         if before:
-            uri += f"&before={before}"
+            query_params["before"] = str(before)
         if between:
-            uri += f"&between={between}"
+            query_params["between"] = str(between)
         if duration:
-            uri += f"&duration={duration}"
+            query_params["duration"] = str(duration)
         if after:
-            uri += f"&after={after}"
+            query_params["after"] = str(after)
 
+        uri = self._build_uri(f"/channels/{channel_id}/dtmf", query_params)
         await self.send_request(method="POST", uri=uri)
 
     async def mute(self, channel_id: str, direction: str = "both") -> None:
@@ -425,9 +448,8 @@ class Channels(BaseAPI):
         Allowed values: both, in, out
         """
 
-        await self.send_request(
-            method="POST", uri=f"/channels/{channel_id}/mute?direction={direction}"
-        )
+        uri = self._build_uri(f"/channels/{channel_id}/mute", {"direction": direction})
+        await self.send_request(method="POST", uri=uri)
 
     async def unmute(self, channel_id: str, direction: str = "both") -> None:
         """Unmute a channel.
@@ -438,9 +460,8 @@ class Channels(BaseAPI):
         Allowed values: both, in, out
         """
 
-        await self.send_request(
-            method="DELETE", uri=f"/channels/{channel_id}/mute?direction={direction}"
-        )
+        uri = self._build_uri(f"/channels/{channel_id}/mute", {"direction": direction})
+        await self.send_request(method="DELETE", uri=uri)
 
     async def hold(self, channel_id: str) -> None:
         """Hold a channel.
@@ -467,10 +488,12 @@ class Channels(BaseAPI):
         :param channel_id: (required) string - Channel's id
         :param moh_class: string - Music on hold class to use
         """
-        uri = f"/channels/{channel_id}/moh"
-        if moh_class:
-            uri += f"?mohClass={moh_class}"
 
+        query_params: dict[str, str] = {}
+        if moh_class:
+            query_params["mohClass"] = moh_class
+
+        uri = self._build_uri(f"/channels/{channel_id}/moh", query_params)
         await self.send_request(method="POST", uri=uri)
 
     async def stop_moh(self, channel_id: str) -> None:
@@ -506,7 +529,7 @@ class Channels(BaseAPI):
         offsetms: int | None = None,
         skipms: int | None = 3000,
         playback_id: str | None = None,
-    ) -> None:
+    ) -> Playback:
         """Start playback of media. The media URI may be any of a number of URI's.
         Currently sound:, recording:, number:, digits:, characters:, and tone: URI's
         are supported. This operation creates a playback resource that can be used to
@@ -524,17 +547,19 @@ class Channels(BaseAPI):
         :param playback_id: string - Playback ID.
         """
 
-        uri = f"/channels/{channel_id}/play?media={media}"
+        query_params: dict[str, str] = {"media": media}
         if lang:
-            uri += f"&lang={lang}"
+            query_params["lang"] = lang
         if offsetms:
-            uri += f"&offsetms={offsetms}"
+            query_params["offsetms"] = str(offsetms)
         if skipms:
-            uri += f"&skipms={skipms}"
+            query_params["skipms"] = str(skipms)
         if playback_id:
-            uri += f"&playbackId={playback_id}"
+            query_params["playbackId"] = playback_id
 
-        await self.send_request(method="POST", uri=uri)
+        uri = self._build_uri(f"/channels/{channel_id}/play", query_params)
+        result = await self.send_request(method="POST", uri=uri)
+        return self.parse_body(result.get("message_body"))
 
     async def play_with_id(
         self,
@@ -544,7 +569,7 @@ class Channels(BaseAPI):
         lang: str | None = None,
         offsetms: int | None = None,
         skipms: int | None = 3000,
-    ) -> None:
+    ) -> Playback:
         """Start playback of media and specify the playbackId. The media URI may be any
         of a number of URI's. Currently sound:, recording:, number:, digits:,
         characters:, and tone: URI's are supported. This operation creates a playback
@@ -564,34 +589,36 @@ class Channels(BaseAPI):
         Default: 3000
         """
 
-        uri = f"/channels/{channel_id}/play{playback_id}?media={media}"
+        query_params: dict[str, str] = {"media": media}
         if lang:
-            uri += f"&lang={lang}"
+            query_params["lang"] = lang
         if offsetms:
-            uri += f"&offsetms={offsetms}"
+            query_params["offsetms"] = str(offsetms)
         if skipms:
-            uri += f"&skipms={skipms}"
+            query_params["skipms"] = str(skipms)
 
-        await self.send_request(method="POST", uri=uri)
+        uri = self._build_uri(f"/channels/{channel_id}/play{playback_id}", query_params)
+        result = await self.send_request(method="POST", uri=uri)
+        return self.parse_body(result.get("message_body"))
 
     async def record(
         self,
         channel_id: str,
         name: str,
-        format: str,
+        record_format: str,
         max_duration_seconds: int = 0,
         max_silence_seconds: int = 0,
         if_exists: str = "fail",
         beep: bool = False,
         terminate_on: str = "none",
-    ) -> dict:
+    ) -> LiveRecording:
         """Start a recording. Record audio from a channel. Note that this will not
         capture audio sent to the channel. The bridge itself has a record feature
         if that's what you want.
 
         :param channel_id: (required) string - Channel's id
         :param name: string - (required) Recording's filename
-        :param format: string - (required) Format to encode audio in
+        :param record_format: string - (required) Format to encode audio in
         :param max_duration_seconds: int - Maximum duration of the recording, in seconds.
         0 for no limit
         Allowed range: Min: 0; Max: None
@@ -607,28 +634,34 @@ class Channels(BaseAPI):
         Default: none
         Allowed values: none, any, *, #
         """
-        uri = f"/channels/{channel_id}/record?name={name}&format={format}"
+
+        query_params: dict[str, str] = {
+            "name": name,
+            "format": record_format,
+        }
         if max_duration_seconds:
-            uri += f"&maxDurationSeconds={max_duration_seconds}"
+            query_params["maxDurationSeconds"] = str(max_duration_seconds)
         if max_silence_seconds:
-            uri += f"&maxSilenceSeconds={max_silence_seconds}"
+            query_params["maxSilenceSeconds"] = str(max_silence_seconds)
         if if_exists:
-            uri += f"&ifExists={if_exists}"
+            query_params["ifExists"] = if_exists
         if beep:
-            uri += "&beep=true"
+            query_params["beep"] = "true"
         if terminate_on:
-            uri += f"&terminateOn={terminate_on}"
+            query_params["terminateOn"] = terminate_on
+
+        uri = self._build_uri(f"/channels/{channel_id}/record", query_params)
 
         result = await self.send_request(method="POST", uri=uri)
         return self.parse_body(result.get("message_body"))
 
-    async def get_variable(self, channel_id: str, variable: str) -> dict:
+    async def get_variable(self, channel_id: str, variable: str) -> Variable:
         """Get the value of a channel variable or function.
 
         :param channel_id: string - (required) Channel's id
         :param variable: string - (required) The channel variable or function to get
         """
-        uri = f"channels/{channel_id}/variable?variable={variable}"
+        uri = self._build_uri(f"channels/{channel_id}/variable", {"variable": variable})
         result = await self.send_request(method="GET", uri=uri)
         return self.parse_body(result.get("message_body"))
 
@@ -641,10 +674,11 @@ class Channels(BaseAPI):
         :param variable: string - (required) The channel variable or function to get
         :param value: string - The value to set the variable to
         """
-        uri = f"channels/{channel_id}/variable?variable={variable}"
+        query_params: dict[str, str] = {"variable": variable}
         if value:
-            uri += f"&value={value}"
+            query_params["value"] = value
 
+        uri = self._build_uri(f"channels/{channel_id}/variable", query_params)
         await self.send_request(method="POST", uri=uri)
 
     async def snoop(
@@ -655,7 +689,7 @@ class Channels(BaseAPI):
         app: str | None = None,
         app_args: str | None = None,
         snoop_id: str | None = None,
-    ) -> dict:
+    ) -> Channel:
         """Start snooping. Snoop (spy/whisper) on a specific channel.
 
         :param channel_id: string - (required) Channel's id
@@ -670,17 +704,19 @@ class Channels(BaseAPI):
         application
         :param snoop_id: string - Unique ID to assign to snooping channel
         """
-        uri = f"channels/{channel_id}/snoop"
+        query_params: dict[str, str] = {}
         if spy:
-            uri += f"?spy={spy}"
+            query_params["spy"] = spy
         if whisper:
-            uri += f"&whisper={whisper}"
+            query_params["whisper"] = whisper
         if app:
-            uri += f"&app={app}"
+            query_params["app"] = app
         if app_args:
-            uri += f"&appArgs={app_args}"
+            query_params["appArgs"] = app_args
         if snoop_id:
-            uri += f"&snoopId={snoop_id}"
+            query_params["snoopId"] = snoop_id
+
+        uri = self._build_uri(f"channels/{channel_id}/snoop", query_params)
 
         result = await self.send_request(method="POST", uri=uri)
         return self.parse_body(result.get("message_body"))
@@ -693,7 +729,7 @@ class Channels(BaseAPI):
         whisper: str = "none",
         app: str | None = None,
         app_args: str | None = None,
-    ) -> dict:
+    ) -> Channel:
         """Start snooping. Snoop (spy/whisper) on a specific channel.
 
         :param channel_id: string - (required) Channel's id
@@ -708,15 +744,18 @@ class Channels(BaseAPI):
         :param app_args: string - The application arguments to pass to the Stasis
         application
         """
-        uri = f"channels/{channel_id}/snoop/{snoop_id}"
+
+        query_params: dict[str, str] = {}
         if spy:
-            uri += f"?spy={spy}"
+            query_params["spy"] = spy
         if whisper:
-            uri += f"&whisper={whisper}"
+            query_params["whisper"] = whisper
         if app:
-            uri += f"&app={app}"
+            query_params["app"] = app
         if app_args:
-            uri += f"&appArgs={app_args}"
+            query_params["appArgs"] = app_args
+
+        uri = self._build_uri(f"channels/{channel_id}/snoop/{snoop_id}", query_params)
 
         result = await self.send_request(method="POST", uri=uri)
         return self.parse_body(result.get("message_body"))
@@ -732,15 +771,16 @@ class Channels(BaseAPI):
         Allowed range: Min: 0; Max: None
         """
 
-        uri = f"channels/{channel_id}/dial"
+        query_params: dict[str, str] = {}
         if caller:
-            uri += f"?caller={caller}"
+            query_params["caller"] = caller
         if timeout:
-            uri += f"&timeout={timeout}"
+            query_params["timeout"] = str(timeout)
 
+        uri = self._build_uri(f"channels/{channel_id}/dial", query_params)
         await self.send_request(method="POST", uri=uri)
 
-    async def rtp_statistics(self, channel_id: str) -> dict:
+    async def rtp_statistics(self, channel_id: str) -> RTPstat:
         """RTP stats on a channel.
 
         :param channel_id: string - (required) Channel's id
@@ -763,7 +803,7 @@ class Channels(BaseAPI):
         data: str | None = None,
         transport_data: str | None = None,
         variables: dict | None = None,
-    ) -> dict:
+    ) -> Channel:
         """
         Start an External Media session. Create a channel to an External Media
         source/sink. The combination of transport and encapsulation will select one
@@ -799,25 +839,27 @@ class Channels(BaseAPI):
         "variables": { "CALLERID(name)": "Alice" } }
         """
 
-        uri = f"channels/externalMedia?app={app}"
+        query_params: dict[str, str] = {"app": app}
         if channel_id:
-            uri += f"&channelId={channel_id}"
+            query_params["channelId"] = channel_id
         if external_host:
-            uri += f"&external_host={external_host}"
+            query_params["external_host"] = external_host
         if encapsulation:
-            uri += f"&encapsulation={encapsulation}"
+            query_params["encapsulation"] = encapsulation
         if transport:
-            uri += f"&transport={transport}"
+            query_params["transport"] = transport
         if connection_type:
-            uri += f"&connection_type={connection_type}"
+            query_params["connection_type"] = connection_type
         if format:
-            uri += f"&format={format}"
+            query_params["format"] = format
         if direction:
-            uri += f"&direction={direction}"
+            query_params["direction"] = direction
         if data:
-            uri += f"&data={data}"
+            query_params["data"] = data
         if transport_data:
-            uri += f"&transport_data={transport_data}"
+            query_params["transport_data"] = transport_data
+
+        uri = self._build_uri("channels/externalMedia", query_params)
 
         if not variables:
             variables = {}
@@ -832,7 +874,7 @@ class Channels(BaseAPI):
         :param states: string - (required) The state of the progress
         """
 
-        await self.send_request(
-            method="POST",
-            uri=f"channels/{channel_id}/transfer_progress?states={states}",
+        uri = self._build_uri(
+            f"channels/{channel_id}/transfer_progress", {"states": states}
         )
+        await self.send_request(method="POST", uri=uri)

@@ -14,7 +14,9 @@ import json
 import logging
 import sys
 import traceback
+
 from my_ari_websocket import AstAriWebSocketClient
+
 from api.bridges import Bridges
 from api.sounds import Sounds
 
@@ -65,11 +67,8 @@ class WSClient(AstAriWebSocketClient):
             x = await self.bridges.get(bridge_id=sess.bridge_id)
             print("BRIDGE xxx::: {}".format(x))
 
-            x = await self.sounds.list()
-            print("SOUNDS ::::: {}".format(x))
-
             x = await self.bridges.record(
-                bridge_id=sess.bridge_id, name="rec123", format="wav"
+                bridge_id=sess.bridge_id, name="rec123", recording_format="wav"
             )
             print("RESULT zzzz::: {}".format(x))
 
