@@ -15,7 +15,7 @@ services:
     environment:
       - ASTERISK_USER=root
     ports:
-      - "5061:5060/udp"
+      - "5062:5060/udp"
       - "8088:8088"
       - "10000-10010:10000-10010/udp"
     networks:

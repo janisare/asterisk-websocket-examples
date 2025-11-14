@@ -1,15 +1,15 @@
 
-from applications import Applications
-from asterisk import Asterisk
-from bridges import Bridges
-from channels import Channels
-from device_states import DeviceStates
-from endpoints import Endpoints
-from events import Events
-from mailboxes import Mailboxes
-from playbacks import Playbacks
-from recordings import Recordings
-from sounds import Sounds
+from api.applications import Applications
+from api.asterisk import Asterisk
+from api.bridges import Bridges
+from api.channels import Channels
+from api.device_states import DeviceStates
+from api.endpoints import Endpoints
+from api.events import Events
+from api.mailboxes import Mailboxes
+from api.playbacks import Playbacks
+from api.recordings import Recordings
+from api.sounds import Sounds
 
 
 __all__ = (
