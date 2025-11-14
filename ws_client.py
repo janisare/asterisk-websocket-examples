@@ -1,8 +1,6 @@
 import json
 import uuid
 
-import asyncio
-
 from twisted.internet import defer, reactor
 from autobahn.twisted.websocket import WebSocketClientFactory, WebSocketClientProtocol
 from twisted.logger import Logger
@@ -34,7 +32,6 @@ class MyClientProtocol(WebSocketClientProtocol):
     def onConnect(self, response):
         print("Server connected: {0}".format(response.peer))
 
-
     def onOpen(self):
         self.sendMessage(u"Hello, world!".encode('utf8'))
 
@@ -64,15 +61,16 @@ class MyClientProtocol(WebSocketClientProtocol):
         msg = json.dumps(req)
         rtnobj = {"result": ""}
 
-        if wait_for_response:
-            rtnobj["event"] = asyncio.Event()
+        # if wait_for_response:
+        #     rtnobj["event"] = asyncio.Event()
 
         self.requests[uuidstr] = rtnobj
         self.log.info(f"RESTRequest: {method} {uri} {uuidstr}")
-        self.sendMessage(msg.encode("utf-8"))
+        x = self.sendMessage(msg.encode("utf-8"))
+        print("SENDING MESSAGE", type(x), x)
         # await self.websocket.send(msg.encode("utf-8"), text=True)
-        if wait_for_response:
-            await rtnobj["event"].wait()
+        # if wait_for_response:
+        #     await rtnobj["event"].wait()
         del self.requests[uuidstr]
         resp = rtnobj["result"]
 
@@ -83,6 +81,8 @@ class MyClientProtocol(WebSocketClientProtocol):
         )
         if callback is not None:
             return callback(self.websocket, uuidstr, req, rtnobj["result"])
+
+        print("RETURING>>>>>>>", rtnobj["result"])
         return rtnobj["result"]
 
     async def handle_stasisstart(self, msg):
@@ -229,7 +229,7 @@ class MyClientProtocol(WebSocketClientProtocol):
         if isBinary:
             print("Binary message received: {0} bytes".format(len(payload)))
         else:
-            # print("Text message received: {0}".format(payload.decode('utf8')))
+            print("Text message received: {0}".format(payload.decode('utf8')))
             msg = json.loads(payload.decode('utf8'))
             coro = self.process_message(msg)
             defer.Deferred.fromCoroutine(coro)

@@ -67,21 +67,36 @@ class AstAriWebSocket:
         msg = json.dumps(req)
         rtnobj = {"result": ""}
         if wait_for_response:
+            print("BAAAAAM!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            print(rtnobj)
             rtnobj["event"] = asyncio.Event()
 
         self.requests[uuidstr] = rtnobj
         self.log(INFO, f"RESTRequest: {method} {uri} {uuidstr}")
         await self.websocket.send(msg.encode("utf-8"), text=True)
         if wait_for_response:
+            print("WAAAAAIIIII!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            print(rtnobj)
             await rtnobj["event"].wait()
+
+        print("DONEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
+        print(rtnobj)
+
         del self.requests[uuidstr]
+
         resp = rtnobj["result"]
+
+        print("RESP::::::::::::::::::::::::::::::::::", resp)
+
         self.log(
             INFO,
             f"RESTResponse: {method} {uri} {resp['status_code']} {resp['reason_phrase']}",
         )
         if callback is not None:
+            print("SHOOOOOOOT CALLBACK!!!!!!!!!!!!!!!!!!!!!", rtnobj["result"])
             return callback(self.websocket, uuidstr, req, rtnobj["result"])
+
+        print("JUST RETURN................")
         return rtnobj["result"]
 
     async def process_rest_response(self, msg):
