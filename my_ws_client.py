@@ -20,6 +20,7 @@ from my_ari_websocket import AstAriWebSocketClient
 from api.bridges import Bridges
 from api.sounds import Sounds
 
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     format="%(asctime)s %(message)s",
