@@ -23,3 +23,6 @@ class BaseAPI:
         if not query_params:
             return path
         return f"{path}?{urlencode(query_params)}"
+
+    def process_result(self, result: dict) -> dict:
+        return self.parse_body(result.get("message_body"))

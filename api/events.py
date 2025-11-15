@@ -8,7 +8,7 @@ class Events(BaseAPI):
     def __init__(self, send_request):
         super().__init__(send_request)
 
-    async def events(self, app: str, subscribe_all: bool = False) -> Message:
+    def events(self, app: str, subscribe_all: bool = False) -> Message:
         """WebSocket connection for events.
 
         :param app: string - (required) Applications to subscribe to.
@@ -23,16 +23,17 @@ class Events(BaseAPI):
             "subscribeAll": str(subscribe_all).lower(),
         }
         uri = self._build_uri("events", query_params)
-        result = await self.send_request(method="GET", uri=uri)
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="GET", uri=uri)
+        df.addCallback(self.process_result)
+        return df
 
-    async def create(
+    def create(
         self,
         name: str,
         app: str,
         source: str | None = None,
         variables: dict | None = None,
-    ) -> dict:
+    ) -> None:
         """Generate a user event.
 
         :param name: string - (required) Event name
@@ -56,5 +57,4 @@ class Events(BaseAPI):
         if not variables:
             variables = {}
 
-        result = await self.send_request(method="POST", uri=uri, **variables)
-        return self.parse_body(result.get("message_body"))
+        self.send_request(method="POST", uri=uri, **variables)

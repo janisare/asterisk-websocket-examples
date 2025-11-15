@@ -16,7 +16,7 @@ class Asterisk(BaseAPI):
     def __init__(self, send_request):
         super().__init__(send_request)
 
-    async def get_object(
+    def get_object(
         self, config_class: str, object_type: str, object_id: str
     ) -> ConfigTupleList:
         """Retrieve a dynamic configuration object.
@@ -27,13 +27,14 @@ class Asterisk(BaseAPI):
         :param object_id: string - The unique identifier of the object to retrieve.
         """
 
-        result = await self.send_request(
+        df = self.send_request(
             method="GET",
             uri=f"asterisk/config/dynamic/{config_class}/{object_type}/{object_id}",
         )
-        return self.parse_body(result.get("message_body"))
+        df.addCallback(self.process_result)
+        return df
 
-    async def update_object(
+    def update_object(
         self,
         config_class: str,
         object_type: str,
@@ -56,14 +57,15 @@ class Asterisk(BaseAPI):
         if not fields:
             fields = {}
 
-        result = await self.send_request(
+        df = self.send_request(
             method="PUT",
             uri=f"asterisk/config/dynamic/{config_class}/{object_type}/{object_id}",
             **fields,
         )
-        return self.parse_body(result.get("message_body"))
+        df.addCallback(self.process_result)
+        return df
 
-    async def delete_object(
+    def delete_object(
         self, config_class: str, object_type: str, object_id: str
     ) -> None:
         """Create or update a dynamic configuration object.
@@ -74,12 +76,12 @@ class Asterisk(BaseAPI):
         :param object_id: string - The unique identifier of the object to delete.
         """
 
-        await self.send_request(
+        self.send_request(
             method="DELETE",
             uri=f"asterisk/config/dynamic/{config_class}/{object_type}/{object_id}",
         )
 
-    async def get_info(self, only: str) -> AsteriskInfo:
+    def get_info(self, only: str) -> AsteriskInfo:
         """Gets Asterisk system information.
 
         :param only: string - Filter information returned
@@ -92,99 +94,105 @@ class Asterisk(BaseAPI):
             query_params["only"] = only
 
         uri = self._build_uri("asterisk/info", query_params)
-        result = await self.send_request(method="GET", uri=uri)
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="GET", uri=uri)
+        df.addCallback(self.process_result)
+        return df
 
-    async def ping(self) -> AsteriskPing:
+    def ping(self) -> AsteriskPing:
         """Ping Asterisk server."""
 
-        result = await self.send_request(method="GET", uri="asterisk/ping")
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="GET", uri="asterisk/ping")
+        df.addCallback(self.process_result)
+        return df
 
-    async def list_modules(self) -> ModuleList:
+    def list_modules(self) -> ModuleList:
         """List Asterisk modules."""
 
-        result = await self.send_request(method="GET", uri="asterisk/modules")
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="GET", uri="asterisk/modules")
+        df.addCallback(self.process_result)
+        return df
 
-    async def get_module(self, name: str) -> Module:
+    def get_module(self, name: str) -> Module:
         """Get Asterisk module information.
 
         :param name: string - (required) Module name.
         """
 
-        result = await self.send_request(method="GET", uri=f"asterisk/modules/{name}")
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="GET", uri=f"asterisk/modules/{name}")
+        df.addCallback(self.process_result)
+        return df
 
-    async def load_module(self, name: str) -> None:
+    def load_module(self, name: str) -> None:
         """Load an Asterisk module.
 
         :param name: string - (required) Module name.
         """
 
-        await self.send_request(method="POST", uri=f"asterisk/modules/{name}")
+        self.send_request(method="POST", uri=f"asterisk/modules/{name}")
 
-    async def unload_module(self, name: str) -> None:
+    def unload_module(self, name: str) -> None:
         """Unload an Asterisk module.
 
         :param name: string - (required) Module name.
         """
 
-        await self.send_request(method="DELETE", uri=f"asterisk/modules/{name}")
+        self.send_request(method="DELETE", uri=f"asterisk/modules/{name}")
 
-    async def reload_module(self, name: str) -> None:
+    def reload_module(self, name: str) -> None:
         """Reload an Asterisk module.
 
         :param name: string - (required) Module name.
         """
 
-        await self.send_request(method="PUT", uri=f"asterisk/modules/{name}")
+        self.send_request(method="PUT", uri=f"asterisk/modules/{name}")
 
-    async def list_log_channels(self) -> LogChannelList:
+    def list_log_channels(self) -> LogChannelList:
         """Gets Asterisk log channel information."""
 
-        result = await self.send_request(method="GET", uri="asterisk/logging")
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="GET", uri="asterisk/logging")
+        df.addCallback(self.process_result)
+        return df
 
-    async def add_log(self, name: str, config: str) -> None:
+    def add_log(self, name: str, config: str) -> None:
         """Adds a log channel.
 
         :param name: string - (required) Name of the log channel.
         :param config: string - (required) levels of the log channel
         """
 
-        await self.send_request(
+        self.send_request(
             method="POST", uri=f"asterisk/logging/{name}?configuration={config}"
         )
 
-    async def delete_log(self, name: str) -> None:
+    def delete_log(self, name: str) -> None:
         """Deletes a log channel.
 
         :param name: string - (required) Name of the log channel.
         """
 
-        await self.send_request(method="DELETE", uri=f"asterisk/logging/{name}")
+        self.send_request(method="DELETE", uri=f"asterisk/logging/{name}")
 
-    async def rotate_log(self, name: str) -> None:
+    def rotate_log(self, name: str) -> None:
         """Rotates a log channel.
 
         :param name: string - (required) Name of the log channel.
         """
 
-        await self.send_request(method="PUT", uri=f"asterisk/logging/{name}/rotate")
+        self.send_request(method="PUT", uri=f"asterisk/logging/{name}/rotate")
 
-    async def get_variable(self, variable: str) -> Variable:
+    def get_variable(self, variable: str) -> Variable:
         """Get the value of a global variable.
 
         :param variable: string - (required) The variable to get.
         """
 
-        result = await self.send_request(
+        df = self.send_request(
             method="GET", uri=f"asterisk/variable?variable={variable}"
         )
-        return self.parse_body(result.get("message_body"))
+        df.addCallback(self.process_result)
+        return df
 
-    async def set_variable(self, variable: str, value: str | None = None) -> None:
+    def set_variable(self, variable: str, value: str | None = None) -> None:
         """Get the value of a global variable.
 
         :param variable: string - (required) The variable to get.
@@ -196,4 +204,4 @@ class Asterisk(BaseAPI):
             query_params["value"] = value
 
         uri = self._build_uri("asterisk/variable", query_params)
-        await self.send_request(method="POST", uri=uri)
+        self.send_request(method="POST", uri=uri)

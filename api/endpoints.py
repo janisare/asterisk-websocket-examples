@@ -9,13 +9,14 @@ class Endpoints(BaseAPI):
     def __init__(self, send_request):
         super().__init__(send_request)
 
-    async def list(self) -> EndpointList:
+    def list(self) -> EndpointList:
         """List all endpoints."""
 
-        result = await self.send_request(method="GET", uri="endpoints")
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="GET", uri="endpoints")
+        df.addCallback(self.process_result)
+        return df
 
-    async def send(
+    def send(
         self, to: str, sender: str, body: str, variables: dict | None = None
     ) -> None:
         """Send a message to some technology URI or endpoint.
@@ -34,9 +35,9 @@ class Endpoints(BaseAPI):
         if not variables:
             variables = {}
 
-        await self.send_request(method="PUT", uri=uri, **variables)
+        self.send_request(method="PUT", uri=uri, **variables)
 
-    async def refer(
+    def refer(
         self,
         to: str,
         sender: str,
@@ -66,31 +67,31 @@ class Endpoints(BaseAPI):
             "to_self": to_self,
         }
         uri = self._build_uri("endpoints/refer", query_params)
-        result = await self.send_request(method="POST", uri=uri, **variables)
-        return self.parse_body(result.get("message_body"))
+        self.send_request(method="POST", uri=uri, **variables)
 
-    async def list_by_tech(self, tech: str) -> EndpointList:
+    def list_by_tech(self, tech: str) -> EndpointList:
         """List available endpoints for a given endpoint technology.
 
         :param tech: string - Technology of the endpoints (pjsip,iax2,...)
         """
 
-        result = await self.send_request(method="GET", uri=f"endpoints/{tech}")
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="GET", uri=f"endpoints/{tech}")
+        df.addCallback(self.process_result)
+        return df
 
-    async def get(self, tech: str, resource: str) -> Endpoint:
+    def get(self, tech: str, resource: str) -> Endpoint:
         """Details for an endpoint.
 
         :param tech: string - Technology of the endpoints (pjsip,iax2,...)
         :param resource: string - ID of the endpoint
         """
 
-        result = await self.send_request(
-            method="GET", uri=f"endpoints/{tech}/{resource}"
-        )
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="GET", uri=f"endpoints/{tech}/{resource}")
+        df.addCallback(self.process_result)
+        return df.addCallback(self.process_result)
+        return df
 
-    async def send_to_endpoint(
+    def send_to_endpoint(
         self,
         tech: str,
         resource: str,
@@ -115,9 +116,9 @@ class Endpoints(BaseAPI):
         if not variables:
             variables = {}
 
-        await self.send_request(method="PUT", uri=uri, **variables)
+        self.send_request(method="PUT", uri=uri, **variables)
 
-    async def refer_to_endpoint(
+    def refer_to_endpoint(
         self,
         tech: str,
         resource: str,
@@ -125,7 +126,7 @@ class Endpoints(BaseAPI):
         refer_to: str,
         to_self: bool = False,
         variables: dict | None = None,
-    ):
+    ) -> None:
         """Refer an endpoint or technology URI to some technology URI or endpoint.
 
         :param tech: string - Technology of the endpoints (pjsip,iax2,...)
@@ -151,5 +152,4 @@ class Endpoints(BaseAPI):
         if not variables:
             variables = {}
 
-        result = await self.send_request(method="POST", uri=uri, **variables)
-        return self.parse_body(result.get("message_body"))
+        self.send_request(method="POST", uri=uri, **variables)

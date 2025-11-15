@@ -11,7 +11,7 @@ class Sounds(BaseAPI):
     def __init__(self, send_request):
         super().__init__(send_request)
 
-    async def list(
+    def list(
         self, lang: str | None = None, file_format: str | None = None
     ) -> SoundList:
         """List all sounds.
@@ -29,14 +29,16 @@ class Sounds(BaseAPI):
             query_params["format"] = file_format
 
         uri = self._build_uri("sounds", query_params)
-        result = await self.send_request(method="GET", uri=uri)
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="GET", uri=uri)
+        df.addCallback(self.process_result)
+        return df
 
-    async def get(self, sound_id: str) -> Sound:
+    def get(self, sound_id: str) -> Sound:
         """Get a Sound.
 
         :param sound_id: string - (required) Sound Id.
         """
 
-        result = await self.send_request(method="GET", uri=f"sounds/{sound_id}")
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="GET", uri=f"sounds/{sound_id}")
+        df.addCallback(self.process_result)
+        return df

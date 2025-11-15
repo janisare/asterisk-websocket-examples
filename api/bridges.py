@@ -15,7 +15,7 @@ class Bridges(BaseAPI):
         """List all bridges."""
 
         df = self.send_request(method="GET", uri="bridges")
-        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        df.addCallback(self.process_result)
         return df
 
     def create(
@@ -42,7 +42,7 @@ class Bridges(BaseAPI):
 
         uri = self._build_uri("bridges", query_params)
         df = self.send_request(method="POST", uri=uri)
-        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        df.addCallback(self.process_result)
         return df
 
     def create_with_id(
@@ -67,7 +67,7 @@ class Bridges(BaseAPI):
 
         uri = self._build_uri(f"bridges/{bridge_id}", query_params)
         df = self.send_request(method="POST", uri=uri)
-        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        df.addCallback(self.process_result)
         return df
 
     def get(self, bridge_id: str) -> Bridge:
@@ -78,7 +78,7 @@ class Bridges(BaseAPI):
         """
 
         df = self.send_request(method="GET", uri=f"bridges/{bridge_id}")
-        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        df.addCallback(self.process_result)
         return df
 
     def delete(self, bridge_id: str) -> None:
@@ -220,7 +220,7 @@ class Bridges(BaseAPI):
 
         uri = self._build_uri(f"bridges/{bridge_id}/play", query_params)
         df = self.send_request(method="POST", uri=uri)
-        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        df.addCallback(self.process_result)
         return df
 
     def play_with_id(
@@ -272,7 +272,7 @@ class Bridges(BaseAPI):
         uri = self._build_uri(f"bridges/{bridge_id}/play/{playback_id}", query_params)
 
         df = self.send_request(method="POST", uri=uri)
-        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        df.addCallback(self.process_result)
         return df
 
     def record(
@@ -335,5 +335,5 @@ class Bridges(BaseAPI):
         uri = self._build_uri(f"bridges/{bridge_id}/record", query_params)
 
         df = self.send_request(method="POST", uri=uri)
-        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        df.addCallback(self.process_result)
         return df

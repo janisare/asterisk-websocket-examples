@@ -11,22 +11,24 @@ class Recordings(BaseAPI):
     def __init__(self, send_request):
         super().__init__(send_request)
 
-    async def list(self) -> RecordingList:
+    def list(self) -> RecordingList:
         """List recordings that are complete."""
 
-        result = await self.send_request(method="GET", uri="recordings/stored")
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="GET", uri="recordings/stored")
+        df.addCallback(self.process_result)
+        return df
 
-    async def get(self, name: str) -> StoredRecording:
+    def get(self, name: str) -> StoredRecording:
         """Get a stored recording's details.
 
         :param name: string - (required) The name of the recording
         """
 
-        result = await self.send_request(method="GET", uri=f"recordings/stored/{name}")
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="GET", uri=f"recordings/stored/{name}")
+        df.addCallback(self.process_result)
+        return df
 
-    async def copy(self, name: str, destination: str) -> StoredRecording:
+    def copy(self, name: str, destination: str) -> StoredRecording:
         """Copy a stored recording.
 
         :param name: string - (required) The name of the recording
@@ -35,55 +37,55 @@ class Recordings(BaseAPI):
 
         query_params: dict[str, str] = {"destinationRecordingName": destination}
         uri = self._build_uri(f"recordings/stored/{name}/copy", query_params)
-        result = await self.send_request(method="POST", uri=uri)
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="POST", uri=uri)
+        df.addCallback(self.process_result)
+        return df
 
-    async def get_file(self, name: str) -> str:
+    def get_file(self, name: str) -> str:
         """Get the file associated with the stored recording.
 
         :param name: string - (required) The name of the recording
         """
 
-        result = await self.send_request(
-            method="GET", uri=f"recordings/stored/{name}/file"
-        )
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="GET", uri=f"recordings/stored/{name}/file")
+        df.addCallback(self.process_result)
+        return df
 
-    async def delete(self, name: str) -> None:
+    def delete(self, name: str) -> None:
         """Delete a stored recording.
 
         :param name: string - (required) The name of the recording
         """
 
-        await self.send_request(method="DELETE", uri=f"recordings/stored/{name}")
+        self.send_request(method="DELETE", uri=f"recordings/stored/{name}")
 
-    async def get_live(self, name: str) -> LiveRecording:
+    def get_live(self, name: str) -> LiveRecording:
         """Get a stored recording's details.
 
         :param name: string - (required) The name of the recording
         """
 
-        result = await self.send_request(method="GET", uri=f"recordings/live/{name}")
+        df = self.send_request(method="GET", uri=f"recordings/live/{name}")
+        df.addCallback(self.process_result)
+        return df
 
-        return self.parse_body(result.get("message_body"))
-
-    async def cancel(self, name: str) -> None:
+    def cancel(self, name: str) -> None:
         """Stop a live recording and discard it.
 
         :param name: string - (required) The name of the recording
         """
 
-        await self.send_request(method="DELETE", uri=f"recordings/live/{name}")
+        self.send_request(method="DELETE", uri=f"recordings/live/{name}")
 
-    async def stop(self, name: str) -> None:
+    def stop(self, name: str) -> None:
         """Stop a live recording and store it.
 
         :param name: string - (required) The name of the recording
         """
 
-        await self.send_request(method="POST", uri=f"recordings/live/{name}/stop")
+        self.send_request(method="POST", uri=f"recordings/live/{name}/stop")
 
-    async def pause(self, name: str) -> None:
+    def pause(self, name: str) -> None:
         """Pause a live recording. Pausing a recording suspends silence detection,
         which will be restarted when the recording is unpaused. Paused time is not
         included in the accounting for maxDurationSeconds.
@@ -91,30 +93,30 @@ class Recordings(BaseAPI):
         :param name: string - (required) The name of the recording
         """
 
-        await self.send_request(method="POST", uri=f"recordings/live/{name}/pause")
+        self.send_request(method="POST", uri=f"recordings/live/{name}/pause")
 
-    async def unpause(self, name: str) -> None:
+    def unpause(self, name: str) -> None:
         """Unpause a live recording.
 
         :param name: string - (required) The name of the recording
         """
 
-        await self.send_request(method="DELETE", uri=f"recordings/live/{name}/pause")
+        self.send_request(method="DELETE", uri=f"recordings/live/{name}/pause")
 
-    async def mute(self, name: str) -> None:
+    def mute(self, name: str) -> None:
         """Mute a live recording. Muting a recording suspends silence detection,
         which will be restarted when the recording is unmuted.
 
         :param name: string - (required) The name of the recording
         """
 
-        await self.send_request(method="POST", uri=f"recordings/live/{name}/mute")
+        self.send_request(method="POST", uri=f"recordings/live/{name}/mute")
 
-    async def unmute(self, name: str) -> None:
+    def unmute(self, name: str) -> None:
         """Mute a live recording. Muting a recording suspends silence detection,
         which will be restarted when the recording is unmuted.
 
         :param name: string - (required) The name of the recording
         """
 
-        await self.send_request(method="DELETE", uri=f"recordings/live/{name}/mute")
+        self.send_request(method="DELETE", uri=f"recordings/live/{name}/mute")

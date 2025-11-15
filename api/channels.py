@@ -18,7 +18,7 @@ class Channels(BaseAPI):
         """List all active channels in Asterisk."""
 
         df = self.send_request(method="GET", uri="channels")
-        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        df.addCallback(self.process_result)
         return df
 
     def originate(
@@ -111,7 +111,7 @@ class Channels(BaseAPI):
             variables = {}
 
         df = self.send_request(method="POST", uri=uri, **variables)
-        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        df.addCallback(self.process_result)
         return df
 
     def originate_with_id(
@@ -202,7 +202,7 @@ class Channels(BaseAPI):
             variables = {}
 
         df = self.send_request(method="POST", uri=uri, **variables)
-        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        df.addCallback(self.process_result)
         return df
 
     def create(
@@ -257,7 +257,7 @@ class Channels(BaseAPI):
             variables = {}
 
         df = self.send_request(method="POST", uri=uri, **variables)
-        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        df.addCallback(self.process_result)
         return df
 
     def get(self, channel_id: str) -> Channel:
@@ -270,7 +270,7 @@ class Channels(BaseAPI):
             method="GET",
             uri=f"channels/{channel_id}",
         )
-        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        df.addCallback(self.process_result)
         return df
 
     def hangup(
@@ -562,7 +562,7 @@ class Channels(BaseAPI):
 
         uri = self._build_uri(f"/channels/{channel_id}/play", query_params)
         df = self.send_request(method="POST", uri=uri)
-        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        df.addCallback(self.process_result)
         return df
 
     def play_with_id(
@@ -603,7 +603,7 @@ class Channels(BaseAPI):
 
         uri = self._build_uri(f"/channels/{channel_id}/play{playback_id}", query_params)
         df = self.send_request(method="POST", uri=uri)
-        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        df.addCallback(self.process_result)
         return df
 
     def record(
@@ -658,7 +658,7 @@ class Channels(BaseAPI):
         uri = self._build_uri(f"/channels/{channel_id}/record", query_params)
 
         df = self.send_request(method="POST", uri=uri)
-        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        df.addCallback(self.process_result)
         return df
 
     def get_variable(self, channel_id: str, variable: str) -> Variable:
@@ -669,7 +669,7 @@ class Channels(BaseAPI):
         """
         uri = self._build_uri(f"channels/{channel_id}/variable", {"variable": variable})
         df = self.send_request(method="GET", uri=uri)
-        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        df.addCallback(self.process_result)
         return df
 
     def set_variable(
@@ -726,7 +726,7 @@ class Channels(BaseAPI):
         uri = self._build_uri(f"channels/{channel_id}/snoop", query_params)
 
         df = self.send_request(method="POST", uri=uri)
-        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        df.addCallback(self.process_result)
         return df
 
     def snoop_with_id(
@@ -766,7 +766,7 @@ class Channels(BaseAPI):
         uri = self._build_uri(f"channels/{channel_id}/snoop/{snoop_id}", query_params)
 
         df = self.send_request(method="POST", uri=uri)
-        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        df.addCallback(self.process_result)
         return df
 
     def dial(
@@ -797,7 +797,7 @@ class Channels(BaseAPI):
         df = self.send_request(
             method="GET", uri=f"channels/{channel_id}/rtp_statistics"
         )
-        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        df.addCallback(self.process_result)
         return df
 
     def external_media(
@@ -875,7 +875,7 @@ class Channels(BaseAPI):
             variables = {}
 
         df = self.send_request(method="POST", uri=uri, **variables)
-        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        df.addCallback(self.process_result)
         return df
 
     def transfer_progress(self, channel_id: str, states: str) -> None:

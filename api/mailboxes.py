@@ -9,22 +9,24 @@ class Mailboxes(BaseAPI):
     def __init__(self, send_request):
         super().__init__(send_request)
 
-    async def list(self) -> MailboxList:
+    def list(self) -> MailboxList:
         """List all mailboxes."""
 
-        result = await self.send_request(method="GET", uri="mailboxes")
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="GET", uri="mailboxes")
+        df.addCallback(self.process_result)
+        return df
 
-    async def get(self, name: str) -> Mailbox:
+    def get(self, name: str) -> Mailbox:
         """Retrieve the current state of a mailbox.
 
         :param name: string - (required) The name of the mailbox
         """
 
-        result = await self.send_request(method="GET", uri=f"mailboxes/{name}")
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="GET", uri=f"mailboxes/{name}")
+        df.addCallback(self.process_result)
+        return df
 
-    async def update(self, name: str, old_count: int, new_count: int) -> None:
+    def update(self, name: str, old_count: int, new_count: int) -> None:
         """Change the state of a mailbox. (Note - implicitly creates the mailbox).
 
         :param name: string - (required) The name of the mailbox
@@ -38,15 +40,15 @@ class Mailboxes(BaseAPI):
         }
         uri = self._build_uri(f"mailboxes/{name}", query_params)
 
-        await self.send_request(
+        self.send_request(
             method="PUT",
             uri=uri,
         )
 
-    async def delete(self, name: str) -> None:
+    def delete(self, name: str) -> None:
         """Destroy a mailbox.
 
         :param name: string - (required) The name of the mailbox
         """
 
-        await self.send_request(method="DELETE", uri=f"mailboxes/{name}")
+        self.send_request(method="DELETE", uri=f"mailboxes/{name}")

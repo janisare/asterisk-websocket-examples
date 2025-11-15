@@ -9,22 +9,24 @@ class DeviceStates(BaseAPI):
     def __init__(self, send_request):
         super().__init__(send_request)
 
-    async def list(self) -> DeviceStateList:
+    def list(self) -> DeviceStateList:
         """List all ARI controlled device states."""
 
-        result = await self.send_request(method="GET", uri="deviceStates")
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="GET", uri="deviceStates")
+        df.addCallback(self.process_result)
+        return df
 
-    async def get(self, name: str) -> DeviceState:
+    def get(self, name: str) -> DeviceState:
         """Retrieve the current state of a device.
 
         :param name: string - (required) Name of the device
         """
 
-        result = await self.send_request(method="GET", uri=f"deviceStates/{name}")
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="GET", uri=f"deviceStates/{name}")
+        df.addCallback(self.process_result)
+        return df
 
-    async def update(self, name: str, state: str) -> None:
+    def update(self, name: str, state: str) -> None:
         """Change the state of a device controlled by ARI. (Note - implicitly creates
         the device state).
 
@@ -36,12 +38,12 @@ class DeviceStates(BaseAPI):
 
         query_params: dict[str, str] = {"deviceState": state}
         uri = self._build_uri(f"deviceStates/{name}", query_params)
-        await self.send_request(method="PUT", uri=uri)
+        self.send_request(method="PUT", uri=uri)
 
-    async def delete(self, name: str) -> None:
+    def delete(self, name: str) -> None:
         """Destroy a device-state controlled by ARI.
 
         :param name: string - (required) Name of the device
         """
 
-        await self.send_request(method="DELETE", uri=f"deviceStates/{name}")
+        self.send_request(method="DELETE", uri=f"deviceStates/{name}")
