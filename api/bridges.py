@@ -11,13 +11,14 @@ class Bridges(BaseAPI):
     def __init__(self, send_request):
         super().__init__(send_request)
 
-    async def list(self) -> BridgeList:
+    def list(self) -> BridgeList:
         """List all bridges."""
 
-        result = await self.send_request(method="GET", uri="bridges")
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="GET", uri="bridges")
+        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        return df
 
-    async def create(
+    def create(
         self,
         bridge_id: str | None = None,
         name: str | None = None,
@@ -40,10 +41,11 @@ class Bridges(BaseAPI):
             query_params["name"] = name
 
         uri = self._build_uri("bridges", query_params)
-        result = await self.send_request(method="POST", uri=uri)
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="POST", uri=uri)
+        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        return df
 
-    async def create_with_id(
+    def create_with_id(
         self,
         bridge_id: str,
         name: str | None = None,
@@ -64,28 +66,33 @@ class Bridges(BaseAPI):
             query_params["name"] = name
 
         uri = self._build_uri(f"bridges/{bridge_id}", query_params)
-        result = await self.send_request(method="POST", uri=uri)
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="POST", uri=uri)
+        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        return df
 
-    async def get(self, bridge_id: str) -> Bridge:
+    def get(self, bridge_id: str) -> Bridge:
         """
         Get a bridge.
 
         :param bridge_id: string - (required) Bridge ID
         """
 
-        result = await self.send_request(method="GET", uri=f"bridges/{bridge_id}")
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="GET", uri=f"bridges/{bridge_id}")
+        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        return df
 
-    async def delete(self, bridge_id: str) -> None:
+    def delete(self, bridge_id: str) -> None:
         """
         Delete a bridge.
 
         :param bridge_id: string - (required) Bridge ID
         """
-        await self.send_request(method="DELETE", uri=f"bridges/{bridge_id}")
 
-    async def add_channel(
+        self.send_request(
+            method="DELETE", uri=f"bridges/{bridge_id}", wait_for_response=False
+        )
+
+    def add_channel(
         self,
         bridge_id: str,
         channel: str,
@@ -120,9 +127,9 @@ class Bridges(BaseAPI):
             query_params["inhibitConnectedLineUpdates"] = "true"
 
         uri = self._build_uri(f"bridges/{bridge_id}/addChannel", query_params)
-        await self.send_request(method="POST", uri=uri)
+        self.send_request(method="POST", uri=uri, wait_for_response=False)
 
-    async def remove_channel(self, bridge_id: str, channel: str) -> None:
+    def remove_channel(self, bridge_id: str, channel: str) -> None:
         """
         Remove a channel/-s from the bridge.
 
@@ -133,7 +140,7 @@ class Bridges(BaseAPI):
 
         query_params: dict[str, str] = {"channel": channel}
         uri = self._build_uri(f"bridges/{bridge_id}/removeChannel", query_params)
-        await self.send_request(method="POST", uri=uri)
+        self.send_request(method="POST", uri=uri, wait_for_response=False)
 
     def set_video_source(self, bridge_id: int) -> NotImplementedError:
         raise NotImplementedError()
@@ -141,7 +148,7 @@ class Bridges(BaseAPI):
     def clear_video_source(self, bridge_id: int) -> NotImplementedError:
         raise NotImplementedError()
 
-    async def start_moh(self, bridge_id: str, moh_class: str) -> None:
+    def start_moh(self, bridge_id: str, moh_class: str) -> None:
         """Start playing music on hold on the bridge.
 
         :param bridge_id: string - (required) Bridge Id.
@@ -150,17 +157,19 @@ class Bridges(BaseAPI):
 
         query_params: dict[str, str] = {"mohClass": moh_class}
         uri = self._build_uri(f"bridges/{bridge_id}/moh", query_params)
-        await self.send_request(method="POST", uri=uri)
+        self.send_request(method="POST", uri=uri, wait_for_response=False)
 
-    async def stop_moh(self, bridge_id: str) -> None:
+    def stop_moh(self, bridge_id: str) -> None:
         """Stop playing music on hold on the bridge.
 
         :param bridge_id: string - (required) Bridge Id.
         """
 
-        await self.send_request(method="DELETE", uri=f"bridges/{bridge_id}/moh")
+        self.send_request(
+            method="DELETE", uri=f"bridges/{bridge_id}/moh", wait_for_response=False
+        )
 
-    async def play(
+    def play(
         self,
         bridge_id: str,
         media: str,
@@ -210,10 +219,11 @@ class Bridges(BaseAPI):
             query_params["playbackId"] = playback_id
 
         uri = self._build_uri(f"bridges/{bridge_id}/play", query_params)
-        result = await self.send_request(method="POST", uri=uri)
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="POST", uri=uri)
+        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        return df
 
-    async def play_with_id(
+    def play_with_id(
         self,
         bridge_id: str,
         playback_id: str,
@@ -261,10 +271,11 @@ class Bridges(BaseAPI):
 
         uri = self._build_uri(f"bridges/{bridge_id}/play/{playback_id}", query_params)
 
-        result = await self.send_request(method="POST", uri=uri)
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="POST", uri=uri)
+        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        return df
 
-    async def record(
+    def record(
         self,
         bridge_id: str,
         name: str,
@@ -323,5 +334,6 @@ class Bridges(BaseAPI):
 
         uri = self._build_uri(f"bridges/{bridge_id}/record", query_params)
 
-        result = await self.send_request(method="POST", uri=uri)
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="POST", uri=uri)
+        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        return df

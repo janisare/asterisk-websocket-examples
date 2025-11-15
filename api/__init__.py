@@ -1,4 +1,3 @@
-
 from api.applications import Applications
 from api.asterisk import Asterisk
 from api.bridges import Bridges
@@ -23,5 +22,5 @@ __all__ = (
     "Mailboxes",
     "Playbacks",
     "Recordings",
-    "Sounds"
+    "Sounds",
 )

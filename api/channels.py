@@ -14,13 +14,14 @@ class Channels(BaseAPI):
     def __init__(self, send_request):
         super().__init__(send_request)
 
-    async def list(self) -> ChannelList:
+    def list(self) -> ChannelList:
         """List all active channels in Asterisk."""
 
-        result = await self.send_request(method="GET", uri="channels")
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="GET", uri="channels")
+        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        return df
 
-    async def originate(
+    def originate(
         self,
         endpoint: str,
         extension: str | None = None,
@@ -109,10 +110,11 @@ class Channels(BaseAPI):
         if not variables:
             variables = {}
 
-        result = await self.send_request(method="POST", uri=uri, **variables)
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="POST", uri=uri, **variables)
+        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        return df
 
-    async def originate_with_id(
+    def originate_with_id(
         self,
         endpoint: str,
         extension: str | None = None,
@@ -199,10 +201,11 @@ class Channels(BaseAPI):
         if not variables:
             variables = {}
 
-        result = await self.send_request(method="POST", uri=uri, **variables)
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="POST", uri=uri, **variables)
+        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        return df
 
-    async def create(
+    def create(
         self,
         endpoint: str,
         app: str,
@@ -253,22 +256,24 @@ class Channels(BaseAPI):
         if not variables:
             variables = {}
 
-        result = await self.send_request(method="POST", uri=uri, **variables)
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="POST", uri=uri, **variables)
+        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        return df
 
-    async def get(self, channel_id: str) -> Channel:
+    def get(self, channel_id: str) -> Channel:
         """Get Channel details.
 
         :param channel_id: string - Channel's id
         """
 
-        result = await self.send_request(
+        df = self.send_request(
             method="GET",
             uri=f"channels/{channel_id}",
         )
-        return self.parse_body(result.get("message_body"))
+        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        return df
 
-    async def hangup(
+    def hangup(
         self, channel_id: str, reason_code: str | None = None, reason: str | None = None
     ) -> None:
         """Delete (i.e. hangup) a channel.
@@ -290,9 +295,9 @@ class Channels(BaseAPI):
         elif reason:
             uri = self._build_uri(uri, {"reason": reason})
 
-        await self.send_request(method="DELETE", uri=uri)
+        self.send_request(method="DELETE", uri=uri)
 
-    async def continue_in_dialplan(
+    def continue_in_dialplan(
         self,
         channel_id: str,
         context: str | None = None,
@@ -321,11 +326,9 @@ class Channels(BaseAPI):
             query_params["label"] = label
 
         uri = self._build_uri(f"/channels/{channel_id}/continue", query_params)
-        await self.send_request(method="POST", uri=uri)
+        self.send_request(method="POST", uri=uri)
 
-    async def move(
-        self, channel_id: str, app: str, app_args: str | None = None
-    ) -> None:
+    def move(self, channel_id: str, app: str, app_args: str | None = None) -> None:
         """Move the channel from one Stasis application to another.
 
         :param channel_id: (required) string - Channel's id
@@ -340,9 +343,9 @@ class Channels(BaseAPI):
             query_params["appArgs"] = app_args
 
         uri = self._build_uri(f"/channels/{channel_id}/move", query_params)
-        await self.send_request(method="POST", uri=uri)
+        self.send_request(method="POST", uri=uri)
 
-    async def redirect(
+    def redirect(
         self,
         channel_id: str,
         endpoint: str,
@@ -356,9 +359,9 @@ class Channels(BaseAPI):
         uri = self._build_uri(
             f"/channels/{channel_id}/redirect", {"endpoint": endpoint}
         )
-        await self.send_request(method="POST", uri=uri)
+        self.send_request(method="POST", uri=uri)
 
-    async def answer(
+    def answer(
         self,
         channel_id: str,
     ) -> None:
@@ -367,9 +370,9 @@ class Channels(BaseAPI):
         :param channel_id: (required) string - Channel's id
         """
 
-        await self.send_request(method="POST", uri=f"/channels/{channel_id}/answer")
+        self.send_request(method="POST", uri=f"/channels/{channel_id}/answer")
 
-    async def ring(
+    def ring(
         self,
         channel_id: str,
     ) -> None:
@@ -378,9 +381,9 @@ class Channels(BaseAPI):
         :param channel_id: (required) string - Channel's id
         """
 
-        await self.send_request(method="POST", uri=f"/channels/{channel_id}/ring")
+        self.send_request(method="POST", uri=f"/channels/{channel_id}/ring")
 
-    async def ring_stop(
+    def ring_stop(
         self,
         channel_id: str,
     ) -> None:
@@ -389,9 +392,9 @@ class Channels(BaseAPI):
         :param channel_id: (required) string - Channel's id
         """
 
-        await self.send_request(method="DELETE", uri=f"/channels/{channel_id}/ring")
+        self.send_request(method="DELETE", uri=f"/channels/{channel_id}/ring")
 
-    async def progress(
+    def progress(
         self,
         channel_id: str,
     ) -> None:
@@ -400,9 +403,9 @@ class Channels(BaseAPI):
         :param channel_id: (required) string - Channel's id
         """
 
-        await self.send_request(method="POST", uri=f"/channels/{channel_id}/progress")
+        self.send_request(method="POST", uri=f"/channels/{channel_id}/progress")
 
-    async def send_dtmf(
+    def send_dtmf(
         self,
         channel_id: str,
         dtmf: str,
@@ -437,9 +440,9 @@ class Channels(BaseAPI):
             query_params["after"] = str(after)
 
         uri = self._build_uri(f"/channels/{channel_id}/dtmf", query_params)
-        await self.send_request(method="POST", uri=uri)
+        self.send_request(method="POST", uri=uri)
 
-    async def mute(self, channel_id: str, direction: str = "both") -> None:
+    def mute(self, channel_id: str, direction: str = "both") -> None:
         """Mute a channel.
 
         :param channel_id: (required) string - Channel's id
@@ -449,9 +452,9 @@ class Channels(BaseAPI):
         """
 
         uri = self._build_uri(f"/channels/{channel_id}/mute", {"direction": direction})
-        await self.send_request(method="POST", uri=uri)
+        self.send_request(method="POST", uri=uri)
 
-    async def unmute(self, channel_id: str, direction: str = "both") -> None:
+    def unmute(self, channel_id: str, direction: str = "both") -> None:
         """Unmute a channel.
 
         :param channel_id: (required) string - Channel's id
@@ -461,25 +464,25 @@ class Channels(BaseAPI):
         """
 
         uri = self._build_uri(f"/channels/{channel_id}/mute", {"direction": direction})
-        await self.send_request(method="DELETE", uri=uri)
+        self.send_request(method="DELETE", uri=uri)
 
-    async def hold(self, channel_id: str) -> None:
+    def hold(self, channel_id: str) -> None:
         """Hold a channel.
 
         :param channel_id: (required) string - Channel's id
         """
 
-        await self.send_request(method="POST", uri=f"/channels/{channel_id}/hold")
+        self.send_request(method="POST", uri=f"/channels/{channel_id}/hold")
 
-    async def unhold(self, channel_id: str) -> None:
+    def unhold(self, channel_id: str) -> None:
         """Remove a channel from hold.
 
         :param channel_id: (required) string - Channel's id
         """
 
-        await self.send_request(method="DELETE", uri=f"/channels/{channel_id}/hold")
+        self.send_request(method="DELETE", uri=f"/channels/{channel_id}/hold")
 
-    async def start_moh(self, channel_id: str, moh_class: str | None = None) -> None:
+    def start_moh(self, channel_id: str, moh_class: str | None = None) -> None:
         """Play music on hold to a channel. Using media operations such as /play on a
         channel playing MOH in this manner will suspend MOH without resuming
         automatically. If continuing music on hold is desired, the stasis application
@@ -494,34 +497,34 @@ class Channels(BaseAPI):
             query_params["mohClass"] = moh_class
 
         uri = self._build_uri(f"/channels/{channel_id}/moh", query_params)
-        await self.send_request(method="POST", uri=uri)
+        self.send_request(method="POST", uri=uri)
 
-    async def stop_moh(self, channel_id: str) -> None:
+    def stop_moh(self, channel_id: str) -> None:
         """Remove a channel from hold.
 
         :param channel_id: (required) string - Channel's id
         """
 
-        await self.send_request(method="DELETE", uri=f"/channels/{channel_id}/moh")
+        self.send_request(method="DELETE", uri=f"/channels/{channel_id}/moh")
 
-    async def start_silence(self, channel_id: str) -> None:
+    def start_silence(self, channel_id: str) -> None:
         """Play silence to a channel. Using media operations such as /play on a channel
         playing silence in this manner will suspend silence without resuming
         automatically.
 
         :param channel_id: (required) string - Channel's id
         """
-        await self.send_request(method="POST", uri=f"/channels/{channel_id}/silence")
+        self.send_request(method="POST", uri=f"/channels/{channel_id}/silence")
 
-    async def stop_silence(self, channel_id: str) -> None:
+    def stop_silence(self, channel_id: str) -> None:
         """Stop playing silence to a channel.
 
         :param channel_id: (required) string - Channel's id
         """
 
-        await self.send_request(method="DELETE", uri=f"/channels/{channel_id}/silence")
+        self.send_request(method="DELETE", uri=f"/channels/{channel_id}/silence")
 
-    async def play(
+    def play(
         self,
         channel_id: str,
         media: str,
@@ -558,10 +561,11 @@ class Channels(BaseAPI):
             query_params["playbackId"] = playback_id
 
         uri = self._build_uri(f"/channels/{channel_id}/play", query_params)
-        result = await self.send_request(method="POST", uri=uri)
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="POST", uri=uri)
+        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        return df
 
-    async def play_with_id(
+    def play_with_id(
         self,
         channel_id: str,
         playback_id: str,
@@ -598,10 +602,11 @@ class Channels(BaseAPI):
             query_params["skipms"] = str(skipms)
 
         uri = self._build_uri(f"/channels/{channel_id}/play{playback_id}", query_params)
-        result = await self.send_request(method="POST", uri=uri)
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="POST", uri=uri)
+        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        return df
 
-    async def record(
+    def record(
         self,
         channel_id: str,
         name: str,
@@ -652,20 +657,22 @@ class Channels(BaseAPI):
 
         uri = self._build_uri(f"/channels/{channel_id}/record", query_params)
 
-        result = await self.send_request(method="POST", uri=uri)
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="POST", uri=uri)
+        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        return df
 
-    async def get_variable(self, channel_id: str, variable: str) -> Variable:
+    def get_variable(self, channel_id: str, variable: str) -> Variable:
         """Get the value of a channel variable or function.
 
         :param channel_id: string - (required) Channel's id
         :param variable: string - (required) The channel variable or function to get
         """
         uri = self._build_uri(f"channels/{channel_id}/variable", {"variable": variable})
-        result = await self.send_request(method="GET", uri=uri)
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="GET", uri=uri)
+        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        return df
 
-    async def set_variable(
+    def set_variable(
         self, channel_id: str, variable: str, value: str | None = None
     ) -> None:
         """Get the value of a channel variable or function.
@@ -679,9 +686,9 @@ class Channels(BaseAPI):
             query_params["value"] = value
 
         uri = self._build_uri(f"channels/{channel_id}/variable", query_params)
-        await self.send_request(method="POST", uri=uri)
+        self.send_request(method="POST", uri=uri)
 
-    async def snoop(
+    def snoop(
         self,
         channel_id: str,
         spy: str = "none",
@@ -718,10 +725,11 @@ class Channels(BaseAPI):
 
         uri = self._build_uri(f"channels/{channel_id}/snoop", query_params)
 
-        result = await self.send_request(method="POST", uri=uri)
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="POST", uri=uri)
+        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        return df
 
-    async def snoop_with_id(
+    def snoop_with_id(
         self,
         channel_id: str,
         snoop_id: str,
@@ -757,10 +765,11 @@ class Channels(BaseAPI):
 
         uri = self._build_uri(f"channels/{channel_id}/snoop/{snoop_id}", query_params)
 
-        result = await self.send_request(method="POST", uri=uri)
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="POST", uri=uri)
+        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        return df
 
-    async def dial(
+    def dial(
         self, channel_id: str, caller: str | None = None, timeout: int | None = None
     ) -> None:
         """Dial a created channel.
@@ -778,19 +787,20 @@ class Channels(BaseAPI):
             query_params["timeout"] = str(timeout)
 
         uri = self._build_uri(f"channels/{channel_id}/dial", query_params)
-        await self.send_request(method="POST", uri=uri)
+        self.send_request(method="POST", uri=uri)
 
-    async def rtp_statistics(self, channel_id: str) -> RTPstat:
+    def rtp_statistics(self, channel_id: str) -> RTPstat:
         """RTP stats on a channel.
 
         :param channel_id: string - (required) Channel's id
         """
-        result = await self.send_request(
+        df = self.send_request(
             method="GET", uri=f"channels/{channel_id}/rtp_statistics"
         )
-        return self.parse_body(result.get("message_body"))
+        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        return df
 
-    async def external_media(
+    def external_media(
         self,
         app: str,
         channel_id: str | None = None,
@@ -864,10 +874,11 @@ class Channels(BaseAPI):
         if not variables:
             variables = {}
 
-        result = await self.send_request(method="POST", uri=uri, **variables)
-        return self.parse_body(result.get("message_body"))
+        df = self.send_request(method="POST", uri=uri, **variables)
+        df.addCallback(lambda result: self.parse_body(result.get("message_body")))
+        return df
 
-    async def transfer_progress(self, channel_id: str, states: str) -> None:
+    def transfer_progress(self, channel_id: str, states: str) -> None:
         """Inform the channel about the progress of the attended/blind transfer.
 
         :param channel_id: string - (required) Channel's id
@@ -877,4 +888,4 @@ class Channels(BaseAPI):
         uri = self._build_uri(
             f"channels/{channel_id}/transfer_progress", {"states": states}
         )
-        await self.send_request(method="POST", uri=uri)
+        self.send_request(method="POST", uri=uri)

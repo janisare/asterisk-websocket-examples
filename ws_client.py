@@ -1,11 +1,12 @@
 import json
 import uuid
-
+from typing import Any
 from twisted.internet import defer, reactor
 from autobahn.twisted.websocket import WebSocketClientFactory, WebSocketClientProtocol
 from twisted.logger import Logger
 
 from api.bridges import Bridges
+from api.channels import Channels
 from api.sounds import Sounds
 
 
@@ -22,31 +23,34 @@ class Session:
 class MyClientProtocol(WebSocketClientProtocol):
     def __init__(self):
         super().__init__()
+        self.app = "test_inbound_connection"
         self.requests = {}
         self.sessions_by_incoming = {}
         self.log = Logger()
 
         self.bridges = Bridges(self.send_request)
         self.sounds = Sounds(self.send_request)
+        self.channels = Channels(self.send_request)
 
     def onConnect(self, response):
         print("Server connected: {0}".format(response.peer))
 
     def onOpen(self):
-        self.sendMessage(u"Hello, world!".encode('utf8'))
+        pass
+        # self.sendMessage(u"Hello, world!".encode('utf8'))
 
-    async def send_request(
-        self, method, uri, wait_for_response=True, callback=None, **kwargs
-    ):
+    def send_request(
+        self, method, uri, wait_for_response=True, **kwargs
+    ) -> defer.Deferred | None:
         """
         Sends a REST request over the WebSocket connection.
         :param method: The HTTP method (GET, POST, etc.) to use for the request.
         :param uri: The URI for the REST request.
         :param wait_for_response: Whether to wait for a response from the server.
-        :param callback: An optional callback function to process the response.
         :param kwargs: Additional parameters to include in the request.
         :return: The response from the server, or the result of the callback function.
         """
+
         uuidstr = kwargs.pop("request_id", str(uuid.uuid4()))
         req = {
             "type": "RESTRequest",
@@ -59,33 +63,22 @@ class MyClientProtocol(WebSocketClientProtocol):
             req[k] = v
 
         msg = json.dumps(req)
-        rtnobj = {"result": ""}
+        rtnobj: dict[str, Any] = {"result": ""}
 
-        # if wait_for_response:
-        #     rtnobj["event"] = asyncio.Event()
+        response_df = defer.Deferred()
 
-        self.requests[uuidstr] = rtnobj
+        if wait_for_response:
+            rtnobj["event"] = response_df
+            self.requests[uuidstr] = rtnobj
+
         self.log.info(f"RESTRequest: {method} {uri} {uuidstr}")
-        x = self.sendMessage(msg.encode("utf-8"))
-        print("SENDING MESSAGE", type(x), x)
-        # await self.websocket.send(msg.encode("utf-8"), text=True)
-        # if wait_for_response:
-        #     await rtnobj["event"].wait()
-        del self.requests[uuidstr]
-        resp = rtnobj["result"]
+        self.sendMessage(msg.encode("utf-8"))
 
-        print("I AM RESP", resp)
+        if wait_for_response:
+            return response_df
+        return None
 
-        self.log.info(
-            f"RESTResponse: {method} {uri} {resp['status_code']} {resp['reason_phrase']}",
-        )
-        if callback is not None:
-            return callback(self.websocket, uuidstr, req, rtnobj["result"])
-
-        print("RETURING>>>>>>>", rtnobj["result"])
-        return rtnobj["result"]
-
-    async def handle_stasisstart(self, msg):
+    def handle_stasisstart(self, msg):
         self.log.info(f"StasisStart: {msg['channel']}")
 
         if "incoming" in msg["channel"]["dialplan"]["app_data"]:
@@ -95,64 +88,64 @@ class MyClientProtocol(WebSocketClientProtocol):
             self.log.info("Creating other channel")
 
             sess.bridge_id = str(uuid.uuid4())
-            x = await self.bridges.create(name="bridge123", bridge_id=sess.bridge_id)
-            print("BRIDGE::: {}".format(x))
+            self.bridges.create(name="bridge123", bridge_id=sess.bridge_id)
 
-            await self.bridges.add_channel(
+            self.bridges.add_channel(
                 bridge_id=sess.bridge_id, channel=sess.incoming_channel
             )
 
-            x = await self.bridges.get(bridge_id=sess.bridge_id)
-            print("BRIDGE xxx::: {}".format(x))
+            def on_bridge(resp):
+                print("HELLO IM BRIDGE:::::::::::::::::::::::", resp)
 
-            x = await self.bridges.record(
+            bridge_df = self.bridges.get(bridge_id=sess.bridge_id)
+            bridge_df.addCallback(on_bridge)
+
+            self.bridges.record(
                 bridge_id=sess.bridge_id, name="rec123", recording_format="wav"
             )
-            print("RESULT zzzz::: {}".format(x))
 
-            x = await self.bridges.get(bridge_id=sess.bridge_id)
-            print("BRIDGE yyy::: {}".format(x))
+            self.bridges.get(bridge_id=sess.bridge_id)
 
-            resp = await self.send_request(
-                "POST",
-                "channels/create",
-                query_strings=[
-                    {"name": "endpoint", "value": "PJSIP/123456@asterisk-operator"},
-                    {"name": "app", "value": self.app},
-                    {"name": "appArgs", "value": "dialed"},
-                    {"name": "originator", "value": incoming_id},
-                ],
+            def on_new_channel(resp):
+                print("ON NEW CHANNEL:::::", resp)
+                sess.other_channel = resp["id"]
+                sess.other_channel_name = resp["name"]
+
+                self.log.info("Dialing other channel")
+                self.send_request(
+                    "POST",
+                    f"channels/{sess.other_channel}/dial?caller={incoming_id}&timeout=5",
+                )
+
+            df = self.channels.create(
+                endpoint="PJSIP/123456@asterisk-operator",
+                app=self.app,
+                app_args="dialed",
+                originator=incoming_id,
             )
-            msg_body = json.loads(resp.get("message_body"))
-            sess.other_channel = msg_body["id"]
-            sess.other_channel_name = msg_body["name"]
+            df.addCallback(on_new_channel)
 
-            self.log.info("Dialing other channel")
-            await self.send_request(
-                "POST",
-                f"channels/{sess.other_channel}/dial?caller={incoming_id}&timeout=5",
-            )
-
-    async def handle_dial(self, msg):
+    def handle_dial(self, msg):
         chan_name = msg["peer"]["name"]
-
         self.log.info(f"Dial: {chan_name} Status: '{msg['dialstatus']}'")
 
-    async def handle_stasisend(self, msg):
+    def handle_stasisend(self, msg):
         sess = None
         if "incoming" in msg["channel"]["dialplan"]["app_data"]:
             sess = self.sessions_by_incoming.get(msg["channel"]["id"])
             if sess is not None:
                 if sess.other_channel is not None:
                     self.log.info("Hanging up ws %s" % sess.other_channel)
-                    await self.send_request(
-                        "DELETE", "channels/%s" % sess.other_channel
+                    self.send_request(
+                        "DELETE",
+                        "channels/%s" % sess.other_channel,
+                        wait_for_response=False,
                     )
                 del self.sessions_by_incoming[sess.incoming_channel]
                 sess.incoming_channel = None
 
         if sess is not None and sess.bridge_id is not None:
-            await self.send_request("DELETE", "bridges/%s" % sess.bridge_id)
+            self.bridges.delete(sess.bridge_id)
             sess.bridge_id = None
 
     def get_function(self, func):
@@ -166,25 +159,26 @@ class MyClientProtocol(WebSocketClientProtocol):
             if callable(attr):
                 return attr
             return None
+        return None
 
-    async def process_rest_response(self, msg):
+    def process_rest_response(self, msg) -> None:
         """
         Processes a REST response message received over the WebSocket.
         :param msg: The REST response message.
         """
 
         if msg["type"] == "RESTResponse":
-            reqid = msg["request_id"]
-            req = self.requests.get(reqid)
+            request_id = msg["request_id"]
+            req = self.requests.get(request_id)
             if req is None:
-                self.log.error(f"Pending request {reqid} not found.")
+                self.log.error(f"Pending request {request_id} not found.")
                 return
             req["result"] = msg
-            event = req.get("event", None)
+            event: defer.Deferred | None = req.get("event", None)
             if event is not None:
-                event.set()
+                event.callback(req["result"])
 
-    async def handle_any(self, msg):
+    def handle_any(self, msg):
         """
         Handles any ARI event that does not have a specific handler.
         :param rest_handler: The REST handler to use for processing the event.
@@ -210,29 +204,28 @@ class MyClientProtocol(WebSocketClientProtocol):
 
         self.log.info(f"Received {et} {name}")
 
-    async def process_message(self, msg):
+    def process_message(self, msg) -> None:
         """
         Processes an incoming ARI event message and call a handler if it exists.
         :param msg: The ARI event message to process.
         """
 
         if msg["type"] == "RESTResponse":
-            await self.process_rest_response(msg)
-            return
+            self.process_rest_response(msg)
+
         handler_name = f"handle_{msg['type'].lower()}"
         func = self.get_function(handler_name)
-        await self.handle_any(msg)
+        self.handle_any(msg)
         if func is not None:
-            await func(msg)
+            func(msg)
 
-    def onMessage(self, payload, isBinary):
+    def onMessage(self, payload, isBinary) -> None:
         if isBinary:
             print("Binary message received: {0} bytes".format(len(payload)))
         else:
-            print("Text message received: {0}".format(payload.decode('utf8')))
-            msg = json.loads(payload.decode('utf8'))
-            coro = self.process_message(msg)
-            defer.Deferred.fromCoroutine(coro)
+            # print("Text message received: {0}".format(payload.decode('utf8')))
+            msg = json.loads(payload.decode("utf8"))
+            self.process_message(msg)
 
     def onClose(self, wasClean, code, reason):
         print("WebSocket connection closed: {0}".format(reason))
@@ -247,6 +240,6 @@ def main():
     reactor.connectTCP("127.0.0.1", 8088, factory)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
     reactor.run()
